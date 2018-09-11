@@ -4,6 +4,7 @@ namespace Triadev\EsMigration;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
+use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Models\Migration;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -14,6 +15,9 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /** @var string|null */
     private $filePathMigrations;
     
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
+    private $migrationRepository;
+    
     /**
      * ElasticsearchMigration constructor.
      */
@@ -22,6 +26,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $this->esClient = $this->buildElasticsearchClient();
         
         $this->filePathMigrations = config('triadev-elasticsearch-migration.migration.filePath');
+        
+        $this->migrationRepository = app(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
+        );
     }
     
     private function buildElasticsearchClient() : Client
@@ -47,6 +55,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function migrate(string $version)
     {
+        if ($this->migrationRepository->find($version)) {
+            throw new MigrationAlreadyDone();
+        }
+        
         $migrations = $this->buildMigrations($version);
         
         foreach ($migrations as $migration) {
@@ -61,6 +73,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                     break;
             }
         }
+        
+        $this->migrationRepository->createOrUpdate($version, 'done');
     }
     
     private function create(Migration $migration)
