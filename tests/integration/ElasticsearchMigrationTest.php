@@ -1,8 +1,9 @@
 <?php
-namespace Tests;
+namespace Tests\Integration;
 
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Tests\TestCase;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 
 class ElasticsearchMigrationTest extends TestCase

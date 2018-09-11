@@ -1,5 +1,5 @@
 <?php
-namespace Tests\Business\Repository;
+namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;

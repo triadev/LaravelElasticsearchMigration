@@ -69,14 +69,14 @@ The package is registered through the package discovery of laravel and Composer.
 ]
 ```
 
+## Usage
+>php artisan triadev:es:migrate:start VERSION
+
 ## Roadmap
 - delete index
 - create/delete alias
 - create/delete templates
 - reindex
-
-### Cli
-- Start migration
 
 ## Reporting Issues
 If you do find an issue, please feel free to report it with GitHub's bug tracker for this project.

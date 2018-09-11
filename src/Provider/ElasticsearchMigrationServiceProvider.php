@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Provider;
 
 use Illuminate\Support\ServiceProvider;
+use Triadev\EsMigration\Console\Commands\StartMigration;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\ElasticsearchMigration;
 
@@ -23,6 +24,12 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
         $this->mergeConfigFrom($source, 'triadev-elasticsearch-migration');
     
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+    
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                StartMigration::class
+            ]);
+        }
         
         $this->app->bind(
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class,
