@@ -21,6 +21,14 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
         ], 'config');
         
         $this->mergeConfigFrom($source, 'triadev-elasticsearch-migration');
+    
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        
+        $this->app->bind(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class,
+            function () {
+                return app()->make(\Triadev\EsMigration\Business\Repository\ElasticsearchMigration::class);
+            });
     }
     
     /**

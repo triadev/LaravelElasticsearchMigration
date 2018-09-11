@@ -5,6 +5,8 @@ interface ElasticsearchMigrationContract
 {
     /**
      * Migrate
+     *
+     * @param string $version
      */
-    public function migrate();
+    public function migrate(string $version);
 }

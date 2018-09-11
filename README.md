@@ -13,7 +13,9 @@
 Elasticsearch migration for laravel.
 
 ## Main features
-- Migration
+- Create index
+- Update mappings
+- Update settings
 
 ## Installation
 

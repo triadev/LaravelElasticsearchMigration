@@ -2,10 +2,13 @@
 
 namespace Tests;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Triadev\EsMigration\Provider\ElasticsearchMigrationServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
+    use RefreshDatabase;
+    
     /**
      * Setup the test environment.
      */
@@ -35,6 +38,13 @@ class TestCase extends \Orchestra\Testbench\TestCase
      */
     protected function getEnvironmentSetUp($app)
     {
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+        
         $app['config']->set('triadev-elasticsearch-migration', [
             'host' => 'localhost',
             'port' => 9200,
