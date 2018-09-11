@@ -11,7 +11,7 @@ class StartMigration extends Command
      *
      * @var string
      */
-    protected $signature = 'triadev:es:migration:start
+    protected $signature = 'triadev:elasticsearch:migration:start
                             {version : version of migration}';
     
     /**

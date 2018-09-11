@@ -70,7 +70,7 @@ The package is registered through the package discovery of laravel and Composer.
 ```
 
 ## Usage
->php artisan triadev:es:migrate:start VERSION
+>php artisan triadev:elasticsearch:migrate:start VERSION
 
 ## Roadmap
 - delete index

@@ -65,7 +65,7 @@ class StartMigrationTest extends TestCase
             'index' => 'phpunit'
         ]));
         
-        $this->artisan('triadev:es:migration:start', ['version' => '1.0.0']);
+        $this->artisan('triadev:elasticsearch:migration:start', ['version' => '1.0.0']);
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
     
