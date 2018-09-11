@@ -16,6 +16,7 @@ Elasticsearch migration for laravel.
 - Create index
 - Update mappings
 - Update settings
+- Close/Open index for settings update (analyzer, ...)
 
 ## Installation
 
@@ -35,6 +36,47 @@ The package is registered through the package discovery of laravel and Composer.
 | user | ELASTICSEARCH_USER | STRING | Username |
 | pass | ELASTICSEARCH_PASS | STRING | Password |
 | migration.filePath | --- | STRING | File path for migration scripts |
+
+### migrations.php
+| Key        | Value           | Description  |
+|:-------------:|:-------------:|:-----:|
+| *.index  | STRING | Index |
+| *.type  | STRING (create, update or delete) | Type of migration |
+| *.mappings  | ARRAY (create = required, optional) | Example: mappings |
+| *.settings  | ARRAY (optional) | Example: settings |
+| *.closeIndex  | BOOL (default = false) | Close index for settings update |
+
+#### Example: mappings
+```
+'mappings' => [
+    'phpunit' => [
+        'dynamic' => 'strict',
+        'properties' => [
+            'title' => [
+                'type' => 'text'
+            ]
+        ]
+    ]
+ ]
+```
+
+#### Example: settings
+```
+'settings' => [
+    'index' => [
+        'refresh_interval' => "60s"
+    ]
+]
+```
+
+## Roadmap
+- delete index
+- create/delete alias
+- create/delete templates
+- reindex
+
+### Cli
+- Start migration
 
 ## Reporting Issues
 If you do find an issue, please feel free to report it with GitHub's bug tracker for this project.

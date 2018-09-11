@@ -78,12 +78,13 @@ class ElasticsearchMigrationTest extends TestCase
         $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title1'));
         $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title2'));
         
-        $this->assertEquals('60s', array_get(
-            $this->esClient->indices()->getSettings([
-                'index' => 'phpunit'
-            ]),
-            'phpunit.settings.index.refresh_interval'
-        ));
+        $settings = $this->esClient->indices()->getSettings([
+            'index' => 'phpunit'
+        ]);
+        
+        $this->assertEquals('60s', array_get($settings, 'phpunit.settings.index.refresh_interval'));
+        $this->assertEquals('custom', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.type'));
+        $this->assertEquals('whitespace', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.tokenizer'));
         
         $migration = $this->migrationRepository->find('1.0.0');
     

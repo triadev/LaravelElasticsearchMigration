@@ -15,6 +15,9 @@ class Migration
     /** @var array|null */
     private $settings;
     
+    /** @var bool */
+    private $closeIndex = false;
+    
     /**
      * Migrations constructor.
      * @param string $index
@@ -88,5 +91,21 @@ class Migration
     public function setSettings(?array $settings): void
     {
         $this->settings = $settings;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isCloseIndex(): bool
+    {
+        return $this->closeIndex;
+    }
+    
+    /**
+     * @param bool $closeIndex
+     */
+    public function setCloseIndex(bool $closeIndex): void
+    {
+        $this->closeIndex = $closeIndex;
     }
 }

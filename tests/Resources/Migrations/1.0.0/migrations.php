@@ -31,7 +31,24 @@ return [
             ]
         ],
         'settings' => [
-            'refresh_interval' => "60s"
+            'index' => [
+                'refresh_interval' => "60s"
+            ]
+        ]
+    ],
+    [
+        'index' => 'phpunit',
+        'type' => 'update',
+        'closeIndex' => true,
+        'settings' => [
+            'analysis' => [
+                'analyzer' => [
+                    'content' => [
+                        'type' => 'custom',
+                        'tokenizer' => 'whitespace'
+                    ]
+                ]
+            ]
         ]
     ]
 ];

@@ -96,21 +96,41 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     private function update(Migration $migration)
     {
         if ($migration->getMappings()) {
-            foreach ($migration->getMappings() as $type => $mapping) {
-                $this->esClient->indices()->putMapping([
-                    'index' => $migration->getIndex(),
-                    'type' => $type,
-                    'body' => $mapping
-                ]);
-            }
+            $this->updateMappings($migration);
         }
         
         if ($migration->getSettings()) {
-            $this->esClient->indices()->putSettings([
+            $this->updateSettings($migration);
+        }
+    }
+    
+    private function updateMappings(Migration $migration)
+    {
+        foreach ($migration->getMappings() as $type => $mapping) {
+            $this->esClient->indices()->putMapping([
                 'index' => $migration->getIndex(),
-                'body' => [
-                    'index' => $migration->getSettings()
-                ]
+                'type' => $type,
+                'body' => $mapping
+            ]);
+        }
+    }
+    
+    private function updateSettings(Migration $migration)
+    {
+        if ($migration->isCloseIndex()) {
+            $this->esClient->indices()->close([
+                'index' => $migration->getIndex()
+            ]);
+        }
+    
+        $this->esClient->indices()->putSettings([
+            'index' => $migration->getIndex(),
+            'body' => $migration->getSettings()
+        ]);
+    
+        if ($migration->isCloseIndex()) {
+            $this->esClient->indices()->open([
+                'index' => $migration->getIndex()
             ]);
         }
     }
@@ -133,6 +153,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             $migration->setMappings(array_get($migrationsConfig, 'mappings'));
             $migration->setSettings(array_get($migrationsConfig, 'settings'));
+            
+            if ($closeIndex = array_get($migrationsConfig, 'closeIndex')) {
+                $migration->setCloseIndex($closeIndex);
+            }
             
             $result[] = $migration;
         }
