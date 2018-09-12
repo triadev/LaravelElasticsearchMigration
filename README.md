@@ -1,5 +1,3 @@
-# WORK IN PROGRESS
-
 # LaravelElasticsearchMigration
 
 [![Software license][ico-license]](LICENSE)
