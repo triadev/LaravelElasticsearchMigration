@@ -108,9 +108,36 @@ class ElasticsearchMigrationTest extends TestCase
             'index' => 'phpunit'
         ]));
     
-        $this->service->migrate('1.0.1_delete_index');
+        $this->service->migrate('delete_index');
     
         $this->assertFalse($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    }
+    
+    /**
+     * @test
+     */
+    public function it_adds_and_deletes_an_alias()
+    {
+        $this->service->migrate('1.0.0');
+        
+        $this->assertFalse($this->esClient->indices()->existsAlias([
+            'name' => 'alias',
+            'index' => 'phpunit'
+        ]));
+        
+        $this->service->migrate('add_alias');
+    
+        $this->assertTrue($this->esClient->indices()->existsAlias([
+            'name' => 'alias',
+            'index' => 'phpunit'
+        ]));
+    
+        $this->service->migrate('delete_alias');
+    
+        $this->assertFalse($this->esClient->indices()->existsAlias([
+            'name' => 'alias',
             'index' => 'phpunit'
         ]));
     }

@@ -45,6 +45,7 @@ The package is registered through the package discovery of laravel and Composer.
 | *.mappings  | ARRAY (create = required, optional) | Example: mappings |
 | *.settings  | ARRAY (optional) | Example: settings |
 | *.closeIndex  | BOOL (default = false) | Close index for settings update |
+| *.alias  | ARRAY | add or remove alias |
 
 #### Example: mappings
 ```
@@ -69,11 +70,18 @@ The package is registered through the package discovery of laravel and Composer.
 ]
 ```
 
+#### Example: alias
+```
+'alias' => [
+    'add' => [ALIAS, ...],
+    'remove' => [ALIAS, ...]
+]
+```
+
 ## Usage
 >php artisan triadev:elasticsearch:migrate:start VERSION
 
 ## Roadmap
-- create/delete alias
 - create/delete templates
 - reindex
 

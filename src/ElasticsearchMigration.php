@@ -5,6 +5,7 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
+use Triadev\EsMigration\Models\Alias;
 use Triadev\EsMigration\Models\Migration;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -74,6 +75,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                     break;
                 default:
                     break;
+            }
+            
+            if ($migration->getAlias()) {
+                $this->updateAlias($migration);
             }
         }
         
@@ -145,6 +150,27 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
     }
     
+    private function updateAlias(Migration $migration)
+    {
+        if (!empty($migration->getAlias()->getAdd())) {
+            foreach ($migration->getAlias()->getAdd() as $alias) {
+                $this->esClient->indices()->putAlias([
+                    'index' => $migration->getIndex(),
+                    'name' => $alias
+                ]);
+            }
+        }
+    
+        if (!empty($migration->getAlias()->getRemove())) {
+            foreach ($migration->getAlias()->getRemove() as $alias) {
+                $this->esClient->indices()->deleteAlias([
+                    'index' => $migration->getIndex(),
+                    'name' => $alias
+                ]);
+            }
+        }
+    }
+    
     /**
      * @param string $version
      * @return Migration[]
@@ -166,6 +192,20 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             if ($closeIndex = array_get($migrationsConfig, 'closeIndex')) {
                 $migration->setCloseIndex($closeIndex);
+            }
+            
+            if ($aliasConfig = array_get($migrationsConfig, 'alias')) {
+                $alias = new Alias();
+                
+                if ($add = array_get($aliasConfig, 'add')) {
+                    $alias->setAdd($add);
+                }
+    
+                if ($remove = array_get($aliasConfig, 'remove')) {
+                    $alias->setRemove($remove);
+                }
+                
+                $migration->setAlias($alias);
             }
             
             $result[] = $migration;

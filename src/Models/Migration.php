@@ -18,6 +18,9 @@ class Migration
     /** @var bool */
     private $closeIndex = false;
     
+    /** @var Alias|null */
+    private $alias;
+    
     /**
      * Migrations constructor.
      * @param string $index
@@ -107,5 +110,21 @@ class Migration
     public function setCloseIndex(bool $closeIndex): void
     {
         $this->closeIndex = $closeIndex;
+    }
+    
+    /**
+     * @return null|Alias
+     */
+    public function getAlias(): ?Alias
+    {
+        return $this->alias;
+    }
+    
+    /**
+     * @param null|Alias $alias
+     */
+    public function setAlias(?Alias $alias): void
+    {
+        $this->alias = $alias;
     }
 }
