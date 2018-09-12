@@ -3,8 +3,10 @@ namespace Triadev\EsMigration;
 
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Triadev\EsMigration\Business\Migration\CreateIndex;
+use Triadev\EsMigration\Business\Migration\DeleteIndex;
+use Triadev\EsMigration\Business\Migration\UpdateIndex;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
-use Triadev\EsMigration\Exception\IndexNotExist;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Models\Alias;
 use Triadev\EsMigration\Models\Migration;
@@ -65,139 +67,27 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $migrations = $this->buildMigrations($version);
         
         foreach ($migrations as $migration) {
-            switch ($migration->getType()) {
-                case 'create':
-                    $this->create($migration);
-                    break;
-                case 'update':
-                    $this->update($migration);
-                    break;
-                case 'delete':
-                    $this->delete($migration);
-                    break;
-                default:
-                    break;
-            }
-    
-            if ($migration->getAlias()) {
-                $this->updateAlias($migration);
-            }
-    
-            if ($migration->getReindex()) {
-                if (!$this->esClient->indices()->exists(['index' => $migration->getReindex()->getIndex()])) {
-                    throw new IndexNotExist();
+            if ($migration->getType()) {
+                switch ($migration->getType()) {
+                    case 'create':
+                        (new CreateIndex())->migrate($this->esClient, $migration);
+                        break;
+                    case 'update':
+                        (new UpdateIndex())->migrate($this->esClient, $migration);
+                        break;
+                    case 'delete':
+                        (new DeleteIndex())->migrate($this->esClient, $migration);
+                        break;
+                    default:
+                        break;
                 }
-                
-                if ($migration->getReindex()->isRefresh()) {
-                    $this->esClient->indices()->refresh([
-                        'index' => sprintf(
-                            "%s,%s",
-                            $migration->getIndex(),
-                            $migration->getReindex()->getIndex()
-                        )
-                    ]);
-                }
-                
-                $this->esClient->reindex([
-                    'body' => [
-                        'source' => [
-                            'index' => $migration->getIndex()
-                        ],
-                        'dest' => [
-                            'index' => $migration->getReindex()->getIndex()
-                        ]
-                    ]
-                ]);
             }
+            
+            (new \Triadev\EsMigration\Business\Migration\Alias())->migrate($this->esClient, $migration);
+            (new \Triadev\EsMigration\Business\Migration\Reindex())->migrate($this->esClient, $migration);
         }
         
         $this->migrationRepository->createOrUpdate($version, 'done');
-    }
-    
-    private function create(Migration $migration)
-    {
-        $body = [
-            'mappings' => $migration->getMappings()
-        ];
-        
-        if ($migration->getSettings()) {
-            $body['settings'] = $migration->getSettings();
-        }
-        
-        $this->esClient->indices()->create([
-            'index' => $migration->getIndex(),
-            'body' => $body
-        ]);
-    }
-    
-    private function update(Migration $migration)
-    {
-        if ($migration->getMappings()) {
-            $this->updateMappings($migration);
-        }
-        
-        if ($migration->getSettings()) {
-            $this->updateSettings($migration);
-        }
-    }
-    
-    private function delete(Migration $migration)
-    {
-        $this->esClient->indices()->delete([
-            'index' => $migration->getIndex()
-        ]);
-    }
-    
-    private function updateMappings(Migration $migration)
-    {
-        foreach ($migration->getMappings() as $type => $mapping) {
-            $this->esClient->indices()->putMapping([
-                'index' => $migration->getIndex(),
-                'type' => $type,
-                'body' => $mapping
-            ]);
-        }
-    }
-    
-    private function updateSettings(Migration $migration)
-    {
-        if ($migration->isCloseIndex()) {
-            $this->esClient->indices()->close([
-                'index' => $migration->getIndex()
-            ]);
-        }
-    
-        $this->esClient->indices()->putSettings([
-            'index' => $migration->getIndex(),
-            'body' => $migration->getSettings()
-        ]);
-    
-        if ($migration->isCloseIndex()) {
-            $this->esClient->indices()->open([
-                'index' => $migration->getIndex()
-            ]);
-        }
-    }
-    
-    private function updateAlias(Migration $migration)
-    {
-        if (!empty($migration->getAlias()->getAdd())) {
-            foreach ($migration->getAlias()->getAdd() as $alias) {
-                $this->esClient->indices()->putAlias([
-                    'index' => $migration->getIndex(),
-                    'name' => $alias
-                ]);
-            }
-        }
-    
-        if (!empty($migration->getAlias()->getRemove())) {
-            foreach ($migration->getAlias()->getRemove() as $alias) {
-                $this->esClient->indices()->deleteAlias([
-                    'index' => $migration->getIndex(),
-                    'name' => $alias
-                ]);
-            }
-        }
     }
     
     /**
@@ -211,11 +101,9 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $result = [];
         
         foreach ($migrationsConfigs as $migrationsConfig) {
-            $migration = new Migration(
-                array_get($migrationsConfig, 'index'),
-                array_get($migrationsConfig, 'type')
-            );
+            $migration = new Migration(array_get($migrationsConfig, 'index'));
             
+            $migration->setType(array_get($migrationsConfig, 'type'));
             $migration->setMappings(array_get($migrationsConfig, 'mappings'));
             $migration->setSettings(array_get($migrationsConfig, 'settings'));
             

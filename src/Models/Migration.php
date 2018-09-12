@@ -6,7 +6,7 @@ class Migration
     /** @var string */
     private $index;
     
-    /** @var string */
+    /** @var string|null */
     private $type;
     
     /** @var array|null */
@@ -27,12 +27,10 @@ class Migration
     /**
      * Migrations constructor.
      * @param string $index
-     * @param string $type
      */
-    public function __construct(string $index, string $type)
+    public function __construct(string $index)
     {
         $this->index = $index;
-        $this->type = $type;
     }
     
     /**
@@ -52,17 +50,17 @@ class Migration
     }
     
     /**
-     * @return string
+     * @return string|null
      */
-    public function getType(): string
+    public function getType(): ?string
     {
         return $this->type;
     }
     
     /**
-     * @param string $type
+     * @param string|null $type
      */
-    public function setType(string $type)
+    public function setType(?string $type)
     {
         $this->type = $type;
     }
