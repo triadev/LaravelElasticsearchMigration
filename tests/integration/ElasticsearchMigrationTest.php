@@ -95,6 +95,28 @@ class ElasticsearchMigrationTest extends TestCase
     
     /**
      * @test
+     */
+    public function it_deletes_an_index()
+    {
+        $this->assertFalse($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    
+        $this->service->migrate('1.0.0');
+    
+        $this->assertTrue($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    
+        $this->service->migrate('1.0.1_delete_index');
+    
+        $this->assertFalse($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    }
+    
+    /**
+     * @test
      * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyDone
      */
     public function it_throws_an_exception_if_migration_already_done()

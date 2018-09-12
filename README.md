@@ -73,7 +73,6 @@ The package is registered through the package discovery of laravel and Composer.
 >php artisan triadev:elasticsearch:migrate:start VERSION
 
 ## Roadmap
-- delete index
 - create/delete alias
 - create/delete templates
 - reindex

@@ -69,6 +69,9 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 case 'update':
                     $this->update($migration);
                     break;
+                case 'delete':
+                    $this->delete($migration);
+                    break;
                 default:
                     break;
             }
@@ -102,6 +105,13 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         if ($migration->getSettings()) {
             $this->updateSettings($migration);
         }
+    }
+    
+    private function delete(Migration $migration)
+    {
+        $this->esClient->indices()->delete([
+            'index' => $migration->getIndex()
+        ]);
     }
     
     private function updateMappings(Migration $migration)
