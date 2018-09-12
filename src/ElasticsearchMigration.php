@@ -4,9 +4,11 @@ namespace Triadev\EsMigration;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
+use Triadev\EsMigration\Exception\IndexNotExist;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Models\Alias;
 use Triadev\EsMigration\Models\Migration;
+use Triadev\EsMigration\Models\Reindex;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
 {
@@ -76,9 +78,36 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 default:
                     break;
             }
-            
+    
             if ($migration->getAlias()) {
                 $this->updateAlias($migration);
+            }
+    
+            if ($migration->getReindex()) {
+                if (!$this->esClient->indices()->exists(['index' => $migration->getReindex()->getIndex()])) {
+                    throw new IndexNotExist();
+                }
+                
+                if ($migration->getReindex()->isRefresh()) {
+                    $this->esClient->indices()->refresh([
+                        'index' => sprintf(
+                            "%s,%s",
+                            $migration->getIndex(),
+                            $migration->getReindex()->getIndex()
+                        )
+                    ]);
+                }
+                
+                $this->esClient->reindex([
+                    'body' => [
+                        'source' => [
+                            'index' => $migration->getIndex()
+                        ],
+                        'dest' => [
+                            'index' => $migration->getReindex()->getIndex()
+                        ]
+                    ]
+                ]);
             }
         }
         
@@ -206,6 +235,16 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 }
                 
                 $migration->setAlias($alias);
+            }
+            
+            if ($reindexConfig = array_get($migrationsConfig, 'reindex')) {
+                $reindex = new Reindex(array_get($reindexConfig, 'index'));
+                
+                if ($refreshIndex = array_get($reindexConfig, 'refresh')) {
+                    $reindex->setRefresh($refreshIndex);
+                }
+                
+                $migration->setReindex($reindex);
             }
             
             $result[] = $migration;

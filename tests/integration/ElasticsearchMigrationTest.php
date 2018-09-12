@@ -30,6 +30,13 @@ class ElasticsearchMigrationTest extends TestCase
                 'index' => 'phpunit'
             ]);
         }
+    
+        if ($this->esClient->indices()->exists(['index' => 'phpunit_1.0.1']))
+        {
+            $this->esClient->indices()->delete([
+                'index' => 'phpunit_1.0.1'
+            ]);
+        }
         
         $this->migrationRepository = app(
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
@@ -139,6 +146,66 @@ class ElasticsearchMigrationTest extends TestCase
         $this->assertFalse($this->esClient->indices()->existsAlias([
             'name' => 'alias',
             'index' => 'phpunit'
+        ]));
+    }
+    
+    /**
+     * @test
+     * @expectedException \Triadev\EsMigration\Exception\IndexNotExist
+     */
+    public function it_throws_an_exception_if_reindex_dest_index_not_exist()
+    {
+        $this->service->migrate('1.0.0');
+        $this->service->migrate('reindex');
+    }
+    
+    /**
+     * @test
+     */
+    public function it_reindex_an_index()
+    {
+        $this->assertFalse($this->esClient->exists([
+            'id' => 'reindex_test',
+            'index' => 'phpunit',
+            'type' => 'phpunit'
+        ]));
+    
+        $this->assertFalse($this->esClient->exists([
+            'id' => 'reindex_test',
+            'index' => 'phpunit_1.0.1',
+            'type' => 'phpunit'
+        ]));
+        
+        $this->service->migrate('1.0.0');
+        
+        $this->esClient->index([
+            'index' => 'phpunit',
+            'type' => 'phpunit',
+            'id' => 'reindex_test',
+            'body' => [
+                'title1' => 'Title'
+            ]
+        ]);
+    
+        $this->assertTrue($this->esClient->exists([
+            'id' => 'reindex_test',
+            'index' => 'phpunit',
+            'type' => 'phpunit'
+        ]));
+    
+        $this->assertFalse($this->esClient->exists([
+            'id' => 'reindex_test',
+            'index' => 'phpunit_1.0.1',
+            'type' => 'phpunit'
+        ]));
+        
+        $this->service->migrate('1.0.1');
+        $this->service->migrate('reindex');
+        
+        $this->assertTrue($this->esClient->exists([
+            'id' => 'reindex_test',
+            'index' => 'phpunit_1.0.1',
+            'type' => 'phpunit'
         ]));
     }
     

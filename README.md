@@ -17,6 +17,8 @@ Elasticsearch migration for laravel.
 - Update mappings
 - Update settings
 - Close/Open index for settings update (analyzer, ...)
+- Create/Delete alias
+- Reindex index
 
 ## Installation
 
@@ -46,6 +48,9 @@ The package is registered through the package discovery of laravel and Composer.
 | *.settings  | ARRAY (optional) | Example: settings |
 | *.closeIndex  | BOOL (default = false) | Close index for settings update |
 | *.alias  | ARRAY | add or remove alias |
+| *.reindex  | ARRAY | reindex index |
+| *.reindex.index  | ARRAY | reindex: index destination |
+| *.reindex.refresh  | ARRAY | reindex: index refresh before reindex |
 
 #### Example: mappings
 ```
@@ -78,12 +83,19 @@ The package is registered through the package discovery of laravel and Composer.
 ]
 ```
 
+#### Example: reindex
+```
+'reindex' => [
+    'index' => STRING,
+    'refresh' => BOOL
+]
+```
+
 ## Usage
 >php artisan triadev:elasticsearch:migrate:start VERSION
 
 ## Roadmap
 - create/delete templates
-- reindex
 
 ## Reporting Issues
 If you do find an issue, please feel free to report it with GitHub's bug tracker for this project.

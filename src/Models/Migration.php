@@ -21,6 +21,9 @@ class Migration
     /** @var Alias|null */
     private $alias;
     
+    /** @var Reindex|null */
+    private $reindex;
+    
     /**
      * Migrations constructor.
      * @param string $index
@@ -126,5 +129,21 @@ class Migration
     public function setAlias(?Alias $alias): void
     {
         $this->alias = $alias;
+    }
+    
+    /**
+     * @return null|Reindex
+     */
+    public function getReindex(): ?Reindex
+    {
+        return $this->reindex;
+    }
+    
+    /**
+     * @param null|Reindex $reindex
+     */
+    public function setReindex(?Reindex $reindex): void
+    {
+        $this->reindex = $reindex;
     }
 }
