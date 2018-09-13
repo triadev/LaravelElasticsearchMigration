@@ -49,6 +49,7 @@ The package is registered through the package discovery of laravel and Composer.
 | *.reindex  | ARRAY | reindex index |
 | *.reindex.index  | ARRAY | reindex: index destination |
 | *.reindex.refresh  | ARRAY | reindex: index refresh before reindex |
+| *.reindex.versionType  | STRING | elasticsearch documentation |
 
 #### Example: mappings
 ```

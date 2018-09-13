@@ -125,19 +125,30 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 $migration->setAlias($alias);
             }
             
-            if ($reindexConfig = array_get($migrationsConfig, 'reindex')) {
-                $reindex = new Reindex(array_get($reindexConfig, 'index'));
-                
-                if ($refreshIndex = array_get($reindexConfig, 'refresh')) {
-                    $reindex->setRefresh($refreshIndex);
-                }
-                
-                $migration->setReindex($reindex);
-            }
+            $migration = $this->buildReindexConfig($migration, $migrationsConfig);
             
             $result[] = $migration;
         }
         
         return $result;
+    }
+    
+    private function buildReindexConfig(Migration $migration, array $migrationsConfig) : Migration
+    {
+        if ($reindexConfig = array_get($migrationsConfig, 'reindex')) {
+            $reindex = new Reindex(array_get($reindexConfig, 'index'));
+        
+            if ($refreshIndex = array_get($reindexConfig, 'refresh')) {
+                $reindex->setRefresh($refreshIndex);
+            }
+    
+            if ($versionType = array_get($reindexConfig, 'versionType')) {
+                $reindex->setVersionType($versionType);
+            }
+        
+            $migration->setReindex($reindex);
+        }
+        
+        return $migration;
     }
 }

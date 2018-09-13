@@ -17,12 +17,12 @@ class Reindex
      */
     public function migrate(Client $esClient, Migration $migration)
     {
-        if ($migration->getReindex()) {
-            if (!$esClient->indices()->exists(['index' => $migration->getReindex()->getIndex()])) {
+        if ($reindex = $migration->getReindex()) {
+            if (!$esClient->indices()->exists(['index' => $reindex->getIndex()])) {
                 throw new IndexNotExist();
             }
         
-            if ($migration->getReindex()->isRefresh()) {
+            if ($reindex->isRefresh()) {
                 $esClient->indices()->refresh([
                     'index' => sprintf(
                         "%s,%s",
@@ -31,16 +31,22 @@ class Reindex
                     )
                 ]);
             }
+            
+            $body = [
+                'source' => [
+                    'index' => $migration->getIndex()
+                ],
+                'dest' => [
+                    'index' => $migration->getReindex()->getIndex()
+                ]
+            ];
+            
+            if ($versionType = $reindex->getVersionType()) {
+                $body['dest']['version_type'] = $versionType;
+            }
         
             $esClient->reindex([
-                'body' => [
-                    'source' => [
-                        'index' => $migration->getIndex()
-                    ],
-                    'dest' => [
-                        'index' => $migration->getReindex()->getIndex()
-                    ]
-                ]
+                'body' => $body
             ]);
         }
     }

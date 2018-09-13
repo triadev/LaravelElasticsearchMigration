@@ -9,6 +9,9 @@ class Reindex
     /** @var bool */
     private $refresh = false;
     
+    /** @var string|null */
+    private $versionType;
+    
     /**
      * Reindex constructor.
      * @param string $index
@@ -40,5 +43,21 @@ class Reindex
     public function setRefresh(bool $refresh): void
     {
         $this->refresh = $refresh;
+    }
+    
+    /**
+     * @return null|string
+     */
+    public function getVersionType(): ?string
+    {
+        return $this->versionType;
+    }
+    
+    /**
+     * @param null|string $versionType
+     */
+    public function setVersionType(?string $versionType): void
+    {
+        $this->versionType = $versionType;
     }
 }
