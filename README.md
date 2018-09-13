@@ -98,6 +98,8 @@ The package is registered through the package discovery of laravel and Composer.
 
 ## Roadmap
 - create/delete templates
+- shrink index
+- split index
 - rollover index
 
 ## Reporting Issues
