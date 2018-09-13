@@ -102,6 +102,7 @@ The package is registered through the package discovery of laravel and Composer.
 - split index
 - rollover index
 - delete_by_query
+- update_by_query
 
 ## Reporting Issues
 If you do find an issue, please feel free to report it with GitHub's bug tracker for this project.
