@@ -41,9 +41,9 @@ class Reindex
                 ]
             ];
             
-            if ($versionType = $reindex->getVersionType()) {
-                $body['dest']['version_type'] = $versionType;
-            }
+            $body = array_merge($body, $reindex->getGlobal());
+            $body['source'] = array_merge($body['source'], $reindex->getSource());
+            $body['dest'] = array_merge($body['dest'], $reindex->getDest());
         
             $esClient->reindex([
                 'body' => $body

@@ -9,8 +9,14 @@ class Reindex
     /** @var bool */
     private $refresh = false;
     
-    /** @var string|null */
-    private $versionType;
+    /** @var array */
+    private $global = [];
+    
+    /** @var array */
+    private $source = [];
+    
+    /** @var array */
+    private $dest = [];
     
     /**
      * Reindex constructor.
@@ -46,18 +52,50 @@ class Reindex
     }
     
     /**
-     * @return null|string
+     * @return array
      */
-    public function getVersionType(): ?string
+    public function getGlobal(): array
     {
-        return $this->versionType;
+        return $this->global;
     }
     
     /**
-     * @param null|string $versionType
+     * @param array $global
      */
-    public function setVersionType(?string $versionType): void
+    public function setGlobal(array $global): void
     {
-        $this->versionType = $versionType;
+        $this->global = $global;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getSource(): array
+    {
+        return $this->source;
+    }
+    
+    /**
+     * @param array $source
+     */
+    public function setSource(array $source): void
+    {
+        $this->source = $source;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getDest(): array
+    {
+        return $this->dest;
+    }
+    
+    /**
+     * @param array $dest
+     */
+    public function setDest(array $dest): void
+    {
+        $this->dest = $dest;
     }
 }

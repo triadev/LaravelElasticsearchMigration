@@ -111,26 +111,32 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 $migration->setCloseIndex($closeIndex);
             }
             
-            if ($aliasConfig = array_get($migrationsConfig, 'alias')) {
-                $alias = new Alias();
-                
-                if ($add = array_get($aliasConfig, 'add')) {
-                    $alias->setAdd($add);
-                }
-    
-                if ($remove = array_get($aliasConfig, 'remove')) {
-                    $alias->setRemove($remove);
-                }
-                
-                $migration->setAlias($alias);
-            }
-            
+            $migration = $this->buildAliasConfig($migration, $migrationsConfig);
             $migration = $this->buildReindexConfig($migration, $migrationsConfig);
             
             $result[] = $migration;
         }
         
         return $result;
+    }
+    
+    private function buildAliasConfig(Migration $migration, array $migrationsConfig) : Migration
+    {
+        if ($aliasConfig = array_get($migrationsConfig, 'alias')) {
+            $alias = new Alias();
+        
+            if ($add = array_get($aliasConfig, 'add')) {
+                $alias->setAdd($add);
+            }
+        
+            if ($remove = array_get($aliasConfig, 'remove')) {
+                $alias->setRemove($remove);
+            }
+        
+            $migration->setAlias($alias);
+        }
+        
+        return $migration;
     }
     
     private function buildReindexConfig(Migration $migration, array $migrationsConfig) : Migration
@@ -142,8 +148,16 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 $reindex->setRefresh($refreshIndex);
             }
     
-            if ($versionType = array_get($reindexConfig, 'versionType')) {
-                $reindex->setVersionType($versionType);
+            if ($global = array_get($reindexConfig, 'global')) {
+                $reindex->setGlobal($global);
+            }
+    
+            if ($source = array_get($reindexConfig, 'source')) {
+                $reindex->setSource($source);
+            }
+    
+            if ($dest = array_get($reindexConfig, 'dest')) {
+                $reindex->setDest($dest);
             }
         
             $migration->setReindex($reindex);
