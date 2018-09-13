@@ -45,7 +45,7 @@ The package is registered through the package discovery of laravel and Composer.
 | *.mappings  | ARRAY (create = required, optional) | Example: mappings |
 | *.settings  | ARRAY (optional) | Example: settings |
 | *.closeIndex  | BOOL (default = false) | Close index for settings update |
-| *.alias  | ARRAY | add or remove alias |
+| *.alias  | ARRAY | add or remove alias, remove indices |
 | *.reindex  | ARRAY | reindex index |
 | *.reindex.index  | ARRAY | reindex: index destination |
 | *.reindex.refresh  | ARRAY | reindex: index refresh before reindex |
@@ -80,7 +80,8 @@ The package is registered through the package discovery of laravel and Composer.
 ```
 'alias' => [
     'add' => [ALIAS, ...],
-    'remove' => [ALIAS, ...]
+    'remove' => [ALIAS, ...],
+    'removeIndex' => [INDEX, ...]
 ]
 ```
 

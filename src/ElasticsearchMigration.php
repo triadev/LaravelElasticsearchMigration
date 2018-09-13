@@ -132,6 +132,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             if ($remove = array_get($aliasConfig, 'remove')) {
                 $alias->setRemove($remove);
             }
+    
+            if ($removeIndex = array_get($aliasConfig, 'removeIndex')) {
+                $alias->setRemoveIndex($remove);
+            }
         
             $migration->setAlias($alias);
         }

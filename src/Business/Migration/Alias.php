@@ -15,20 +15,30 @@ class Alias
     public function migrate(Client $esClient, Migration $migration)
     {
         if ($migration->getAlias()) {
-            if (!empty($migration->getAlias()->getAdd())) {
-                foreach ($migration->getAlias()->getAdd() as $alias) {
+            $alias = $migration->getAlias();
+            
+            if (!empty($alias->getAdd())) {
+                foreach ($alias->getAdd() as $a) {
                     $esClient->indices()->putAlias([
                         'index' => $migration->getIndex(),
-                        'name' => $alias
+                        'name' => $a
                     ]);
                 }
             }
     
-            if (!empty($migration->getAlias()->getRemove())) {
-                foreach ($migration->getAlias()->getRemove() as $alias) {
+            if (!empty($alias->getRemove())) {
+                foreach ($alias->getRemove() as $a) {
                     $esClient->indices()->deleteAlias([
                         'index' => $migration->getIndex(),
-                        'name' => $alias
+                        'name' => $a
+                    ]);
+                }
+            }
+    
+            if (!empty($alias->getRemoveIndex())) {
+                foreach ($alias->getRemoveIndex() as $i) {
+                    $esClient->indices()->delete([
+                        'index' => $i
                     ]);
                 }
             }

@@ -9,6 +9,9 @@ class Alias
     /** @var array */
     private $remove = [];
     
+    /** @var array */
+    private $removeIndex = [];
+    
     /**
      * @return array
      */
@@ -39,5 +42,21 @@ class Alias
     public function setRemove(array $remove): void
     {
         $this->remove = $remove;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getRemoveIndex(): array
+    {
+        return $this->removeIndex;
+    }
+    
+    /**
+     * @param array $removeIndex
+     */
+    public function setRemoveIndex(array $removeIndex): void
+    {
+        $this->removeIndex = $removeIndex;
     }
 }
