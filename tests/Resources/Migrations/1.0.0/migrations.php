@@ -8,7 +8,7 @@ return [
             'phpunit' => [
                 'dynamic' => 'strict',
                 'properties' => [
-                    'title1' => [
+                    'title' => [
                         'type' => 'text'
                     ]
                 ]
@@ -24,7 +24,7 @@ return [
         'mappings' => [
             'phpunit' => [
                 'properties' => [
-                    'title2' => [
+                    'description' => [
                         'type' => 'text'
                     ]
                 ]

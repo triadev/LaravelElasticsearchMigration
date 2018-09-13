@@ -83,8 +83,8 @@ class ElasticsearchMigrationTest extends TestCase
             'type' => 'phpunit'
         ]);
         
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title1'));
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title2'));
+        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title'));
+        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.description'));
         
         $settings = $this->esClient->indices()->getSettings([
             'index' => 'phpunit'
@@ -183,7 +183,7 @@ class ElasticsearchMigrationTest extends TestCase
             'type' => 'phpunit',
             'id' => 'reindex_test',
             'body' => [
-                'title1' => 'Title'
+                'title' => 'Title'
             ]
         ]);
     

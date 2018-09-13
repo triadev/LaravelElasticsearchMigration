@@ -8,7 +8,7 @@ return [
             'phpunit' => [
                 'dynamic' => 'strict',
                 'properties' => [
-                    'title1' => [
+                    'title' => [
                         'type' => 'text'
                     ]
                 ]
