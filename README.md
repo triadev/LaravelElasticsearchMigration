@@ -98,6 +98,7 @@ The package is registered through the package discovery of laravel and Composer.
 
 ## Roadmap
 - create/delete templates
+- rollover index
 
 ## Reporting Issues
 If you do find an issue, please feel free to report it with GitHub's bug tracker for this project.
