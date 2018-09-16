@@ -10,6 +10,9 @@ return [
                 'properties' => [
                     'title' => [
                         'type' => 'text'
+                    ],
+                    'count' => [
+                        'type' => 'integer'
                     ]
                 ]
             ]

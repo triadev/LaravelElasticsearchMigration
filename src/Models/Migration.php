@@ -27,6 +27,9 @@ class Migration
     /** @var array|null */
     private $deleteByQuery;
     
+    /** @var array|null */
+    private $updateByQuery;
+    
     /**
      * Migrations constructor.
      * @param string $index
@@ -162,5 +165,21 @@ class Migration
     public function setDeleteByQuery(?array $deleteByQuery): void
     {
         $this->deleteByQuery = $deleteByQuery;
+    }
+    
+    /**
+     * @return array|null
+     */
+    public function getUpdateByQuery(): ?array
+    {
+        return $this->updateByQuery;
+    }
+    
+    /**
+     * @param array|null $updateByQuery
+     */
+    public function setUpdateByQuery(?array $updateByQuery): void
+    {
+        $this->updateByQuery = $updateByQuery;
     }
 }

@@ -246,6 +246,48 @@ class ElasticsearchMigrationTest extends TestCase
     
     /**
      * @test
+     */
+    public function it_updates_documents_by_query()
+    {
+        $this->service->migrate('1.0.0');
+        
+        $this->esClient->index([
+            'index' => 'phpunit',
+            'type' => 'phpunit',
+            'id' => 'reindex_test',
+            'body' => [
+                'title' => 'Title',
+                'count' => 1
+            ]
+        ]);
+        
+        $this->esClient->indices()->refresh([
+            'index' => 'phpunit'
+        ]);
+        
+        $this->assertEquals(
+            1,
+            $this->esClient->get([
+                'id' => 'reindex_test',
+                'index' => 'phpunit',
+                'type' => 'phpunit'
+            ])['_source']['count']
+        );
+        
+        $this->service->migrate('update_by_query');
+    
+        $this->assertEquals(
+            2,
+            $this->esClient->get([
+                'id' => 'reindex_test',
+                'index' => 'phpunit',
+                'type' => 'phpunit'
+            ])['_source']['count']
+        );
+    }
+    
+    /**
+     * @test
      * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyDone
      */
     public function it_throws_an_exception_if_migration_already_done()
