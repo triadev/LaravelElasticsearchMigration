@@ -20,6 +20,9 @@ Elasticsearch migration for laravel.
 - Delete By Query
 - Update by Query
 
+## Supported elasticsearch version
+>\>=6.0
+
 ## Installation
 
 ### Composer
