@@ -294,4 +294,24 @@ class ElasticsearchMigrationTest extends TestCase
     
         $this->service->migrate('1.0.0');
     }
+    
+    /**
+     * @test
+     */
+    public function it_updates_migration_status_from_error_to_done()
+    {
+        $this->migrationRepository->createOrUpdate('1.0.0', 'error');
+        
+        $this->assertEquals(
+            'error',
+            $this->migrationRepository->find('1.0.0')->getAttribute('status')
+        );
+        
+        $this->service->migrate('1.0.0');
+    
+        $this->assertEquals(
+            'done',
+            $this->migrationRepository->find('1.0.0')->getAttribute('status')
+        );
+    }
 }

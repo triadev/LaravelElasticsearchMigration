@@ -60,36 +60,45 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function migrate(string $version)
     {
-        if ($this->migrationRepository->find($version)) {
+        $migration = $this->migrationRepository->find($version);
+        if ($migration && $migration->getAttribute('status') == 'done') {
             throw new MigrationAlreadyDone();
         }
         
-        $migrations = $this->buildMigrations($version);
-        
-        foreach ($migrations as $migration) {
-            if ($migration->getType()) {
-                switch ($migration->getType()) {
-                    case 'create':
-                        (new CreateIndex())->migrate($this->esClient, $migration);
-                        break;
-                    case 'update':
-                        (new UpdateIndex())->migrate($this->esClient, $migration);
-                        break;
-                    case 'delete':
-                        (new DeleteIndex())->migrate($this->esClient, $migration);
-                        break;
-                    default:
-                        break;
-                }
-            }
+        try {
+            $migrations = $this->buildMigrations($version);
             
-            (new \Triadev\EsMigration\Business\Migration\Alias())->migrate($this->esClient, $migration);
-            (new \Triadev\EsMigration\Business\Migration\Reindex())->migrate($this->esClient, $migration);
-            (new \Triadev\EsMigration\Business\Migration\DeleteByQuery())->migrate($this->esClient, $migration);
-            (new \Triadev\EsMigration\Business\Migration\UpdateByQuery())->migrate($this->esClient, $migration);
-        }
+            if (!empty($migrations)) {
+                foreach ($migrations as $migration) {
+                    if ($migration->getType()) {
+                        switch ($migration->getType()) {
+                            case 'create':
+                                (new CreateIndex())->migrate($this->esClient, $migration);
+                                break;
+                            case 'update':
+                                (new UpdateIndex())->migrate($this->esClient, $migration);
+                                break;
+                            case 'delete':
+                                (new DeleteIndex())->migrate($this->esClient, $migration);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
         
-        $this->migrationRepository->createOrUpdate($version, 'done');
+                    (new \Triadev\EsMigration\Business\Migration\Alias())->migrate($this->esClient, $migration);
+                    (new \Triadev\EsMigration\Business\Migration\Reindex())->migrate($this->esClient, $migration);
+                    (new \Triadev\EsMigration\Business\Migration\DeleteByQuery())->migrate($this->esClient, $migration);
+                    (new \Triadev\EsMigration\Business\Migration\UpdateByQuery())->migrate($this->esClient, $migration);
+                }
+    
+                $this->migrationRepository->createOrUpdate($version, 'done');
+            }
+        } catch (\Exception $e) {
+            $this->migrationRepository->createOrUpdate($version, 'error');
+            
+            throw $e;
+        }
     }
     
     /**
