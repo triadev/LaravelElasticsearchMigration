@@ -10,6 +10,18 @@
 
 Elasticsearch migration for laravel.
 
+## Supported laravel versions
+[![Laravel 5.5][icon-l55]][link-laravel]
+[![Laravel 5.6][icon-l56]][link-laravel]
+[![Laravel 5.7][icon-l57]][link-laravel]
+
+## Supported elasticsearch versions
+[![Elasticsearch 6.0][icon-e60]][link-elasticsearch]
+[![Elasticsearch 6.1][icon-e61]][link-elasticsearch]
+[![Elasticsearch 6.2][icon-e62]][link-elasticsearch]
+[![Elasticsearch 6.3][icon-e63]][link-elasticsearch]
+[![Elasticsearch 6.4][icon-e64]][link-elasticsearch]
+
 ## Main features
 - Create index
 - Update mappings
@@ -19,9 +31,6 @@ Elasticsearch migration for laravel.
 - Reindex index
 - Delete By Query
 - Update by Query
-
-## Supported elasticsearch version
->\>=6.0
 
 ## Installation
 
@@ -135,6 +144,17 @@ If you do find an issue, please feel free to report it with GitHub's bug tracker
 
 Alternatively, fork the project and make a pull request. :)
 
+## Testing
+1. docker-compose -f docker-compose.yml up
+2. composer test
+
+## Contributing
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## Credits
+- [Christopher Lorke][link-author]
+- [All Contributors][link-contributors]
+
 ## Other
 
 ### Project related links
@@ -153,3 +173,18 @@ The code for LaravelElasticsearchMigration is distributed under the terms of the
 [link-packagist]: https://packagist.org/packages/triadev/laravel-elasticsearch-migration
 [link-downloads]: https://packagist.org/packages/triadev/laravel-elasticsearch-migration/stats
 [link-travis]: https://travis-ci.org/triadev/LaravelElasticsearchMigration
+
+[icon-l55]: https://img.shields.io/badge/Laravel-5.5-brightgreen.svg?style=flat-square
+[icon-l56]: https://img.shields.io/badge/Laravel-5.6-brightgreen.svg?style=flat-square
+[icon-l57]: https://img.shields.io/badge/Laravel-5.7-brightgreen.svg?style=flat-square
+
+[icon-e60]: https://img.shields.io/badge/Elasticsearch-6.0-brightgreen.svg?style=flat-square
+[icon-e61]: https://img.shields.io/badge/Elasticsearch-6.1-brightgreen.svg?style=flat-square
+[icon-e62]: https://img.shields.io/badge/Elasticsearch-6.2-brightgreen.svg?style=flat-square
+[icon-e63]: https://img.shields.io/badge/Elasticsearch-6.3-brightgreen.svg?style=flat-square
+[icon-e64]: https://img.shields.io/badge/Elasticsearch-6.4-brightgreen.svg?style=flat-square
+
+[link-laravel]: https://laravel.com
+[link-elasticsearch]: https://www.elastic.co/
+[link-author]: https://github.com/triadev
+[link-contributors]: ../../contributors

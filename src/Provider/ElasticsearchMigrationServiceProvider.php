@@ -35,7 +35,8 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class,
             function () {
                 return app()->make(\Triadev\EsMigration\Business\Repository\ElasticsearchMigration::class);
-            });
+            }
+        );
     }
     
     /**

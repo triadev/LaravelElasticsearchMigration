@@ -24,8 +24,7 @@ class StartMigrationTest extends TestCase
         $this->service = app(ElasticsearchMigrationContract::class);
         $this->esClient = $this->buildElasticsearchClient();
         
-        if ($this->esClient->indices()->exists(['index' => 'phpunit']))
-        {
+        if ($this->esClient->indices()->exists(['index' => 'phpunit'])) {
             $this->esClient->indices()->delete([
                 'index' => 'phpunit'
             ]);
