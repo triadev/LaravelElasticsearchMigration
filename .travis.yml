@@ -9,6 +9,9 @@ php:
 services:
   - elasticsearch
 
+before_install:
+  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/6.4.0/elasticsearch-6.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-6.4.0.deb && sudo service elasticsearch restart
+
 install:
   - travis_retry composer install --no-interaction --no-suggest
   - wget -c -nc --retry-connrefused --tries=0 https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar -O coveralls.phar
