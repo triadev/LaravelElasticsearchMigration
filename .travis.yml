@@ -13,8 +13,9 @@ branches:
 env:
   matrix:
     - "ES_VERSION=6.0.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.deb"
-    - "ES_VERSION=6.1.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.deb"
-    - "ES_VERSION=6.2.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.deb"
+    - "ES_VERSION=6.1.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.0.deb"
+    - "ES_VERSION=6.2.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.0.deb"
+    - "ES_VERSION=6.3.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.3.0.deb"
     - "ES_VERSION=6.4.0 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.deb"
 
 before_install:
