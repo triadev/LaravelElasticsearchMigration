@@ -85,6 +85,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             (new \Triadev\EsMigration\Business\Migration\Alias())->migrate($this->esClient, $migration);
             (new \Triadev\EsMigration\Business\Migration\Reindex())->migrate($this->esClient, $migration);
+            (new \Triadev\EsMigration\Business\Migration\DeleteByQuery())->migrate($this->esClient, $migration);
         }
         
         $this->migrationRepository->createOrUpdate($version, 'done');
@@ -113,6 +114,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             $migration = $this->buildAliasConfig($migration, $migrationsConfig);
             $migration = $this->buildReindexConfig($migration, $migrationsConfig);
+    
+            if ($deleteByQuery = array_get($migrationsConfig, 'deleteByQuery')) {
+                $migration->setDeleteByQuery($deleteByQuery);
+            }
             
             $result[] = $migration;
         }

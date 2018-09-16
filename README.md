@@ -17,6 +17,7 @@ Elasticsearch migration for laravel.
 - Close/Open index for settings update (analyzer, ...)
 - Create/Delete alias
 - Reindex index
+- Delete By Query
 
 ## Installation
 
@@ -52,6 +53,7 @@ The package is registered through the package discovery of laravel and Composer.
 | *.reindex.global  | ARRAY | reindex global configs: conflicts, size, script |
 | *.reindex.source  | ARRAY | reindex source configs: type, query, sort, _source, size, remote |
 | *.reindex.dest  | ARRAY | reindex dest configs: version_type, op_type, routing, pipeline |
+| *.deleteByQuery  | ARRAY | deleteByQuery |
 
 #### Example: mappings
 ```
@@ -93,6 +95,16 @@ The package is registered through the package discovery of laravel and Composer.
 ]
 ```
 
+#### Example: deleteByQuery
+```
+'deleteByQuery' => [
+    'type' => STRING,
+    'query' => ARRAY,
+    'conflicts' => proceed,
+    ...
+]
+```
+
 ## Usage
 >php artisan triadev:elasticsearch:migrate:start VERSION
 
@@ -101,7 +113,6 @@ The package is registered through the package discovery of laravel and Composer.
 - shrink index
 - split index
 - rollover index
-- delete_by_query
 - update_by_query
 
 ## Reporting Issues

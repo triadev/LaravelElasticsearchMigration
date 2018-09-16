@@ -24,6 +24,9 @@ class Migration
     /** @var Reindex|null */
     private $reindex;
     
+    /** @var array|null */
+    private $deleteByQuery;
+    
     /**
      * Migrations constructor.
      * @param string $index
@@ -143,5 +146,21 @@ class Migration
     public function setReindex(?Reindex $reindex): void
     {
         $this->reindex = $reindex;
+    }
+    
+    /**
+     * @return array|null
+     */
+    public function getDeleteByQuery(): ?array
+    {
+        return $this->deleteByQuery;
+    }
+    
+    /**
+     * @param array|null $deleteByQuery
+     */
+    public function setDeleteByQuery(?array $deleteByQuery): void
+    {
+        $this->deleteByQuery = $deleteByQuery;
     }
 }
