@@ -131,7 +131,12 @@ The package is registered through the package discovery of laravel and Composer.
 ```
 
 ## Usage
+
+### Start migration
 >php artisan triadev:elasticsearch:migrate:start VERSION
+
+### Show migrations
+>php artisan triadev:elasticsearch:migration:show
 
 ## Roadmap
 - create/delete templates

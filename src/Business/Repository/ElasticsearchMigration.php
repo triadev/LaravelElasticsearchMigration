@@ -1,6 +1,7 @@
 <?php
 namespace Triadev\EsMigration\Business\Repository;
 
+use Illuminate\Database\Eloquent\Collection;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -33,6 +34,14 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::where('migration', $migration)
             ->orderBy('created_at', 'desc')
             ->first();
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function all(array $fields = ['*']) : Collection
+    {
+        return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::all($fields);
     }
     
     /**

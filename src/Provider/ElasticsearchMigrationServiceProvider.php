@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Provider;
 
 use Illuminate\Support\ServiceProvider;
+use Triadev\EsMigration\Console\Commands\ShowMigration;
 use Triadev\EsMigration\Console\Commands\StartMigration;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\ElasticsearchMigration;
@@ -27,7 +28,8 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
     
         if ($this->app->runningInConsole()) {
             $this->commands([
-                StartMigration::class
+                StartMigration::class,
+                ShowMigration::class
             ]);
         }
         

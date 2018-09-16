@@ -64,6 +64,29 @@ class ElasticsearchMigrationTest extends TestCase
     /**
      * @test
      */
+    public function it_gets_all_migrations()
+    {
+        $this->repository->createOrUpdate('1.0.0', 'done');
+        $this->repository->createOrUpdate('1.0.1', 'error');
+        
+        $migrations = $this->repository->all();
+        
+        $this->assertCount(2, $migrations);
+        $this->assertArrayHasKey('id', $migrations->toArray()[0]);
+        $this->assertArrayHasKey('migration', $migrations->toArray()[0]);
+        $this->assertArrayHasKey('status', $migrations->toArray()[0]);
+    
+        $migrations = $this->repository->all(['migration', 'status']);
+    
+        $this->assertCount(2, $migrations);
+        $this->assertArrayNotHasKey('id', $migrations->toArray()[0]);
+        $this->assertArrayHasKey('migration', $migrations->toArray()[0]);
+        $this->assertArrayHasKey('status', $migrations->toArray()[0]);
+    }
+    
+    /**
+     * @test
+     */
     public function it_deletes_a_migration()
     {
         $this->repository->createOrUpdate('1.0.0', 'done');
