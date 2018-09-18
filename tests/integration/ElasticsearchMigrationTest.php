@@ -5,6 +5,7 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Tests\TestCase;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
+use Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed;
 
 class ElasticsearchMigrationTest extends TestCase
 {
@@ -313,5 +314,32 @@ class ElasticsearchMigrationTest extends TestCase
             'done',
             $this->migrationRepository->find('1.0.0')->getAttribute('status')
         );
+    }
+    
+    /**
+     * @test
+     * @expectedException \Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed
+     */
+    public function it_throws_exception_if_field_migration_not_allowed()
+    {
+        $this->assertNull($this->migrationRepository->find('1.0.0'));
+    
+        $this->assertFalse($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    
+        $this->service->migrate('1.0.0');
+    
+        $this->assertTrue($this->esClient->indices()->exists([
+            'index' => 'phpunit'
+        ]));
+    
+        try {
+            $this->service->migrate('field_datatype_migration_failed');
+        } catch (FieldDatatypeMigrationFailed $e) {
+            $this->assertCount(2, json_decode($e->getMessage()));
+        
+            throw $e;
+        }
     }
 }

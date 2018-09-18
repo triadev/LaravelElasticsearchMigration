@@ -2,6 +2,8 @@
 namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
+use Triadev\EsMigration\Business\Validation\FieldDatatypeMigration;
+use Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed;
 use Triadev\EsMigration\Models\Migration;
 
 class UpdateIndex
@@ -11,11 +13,20 @@ class UpdateIndex
      *
      * @param Client $esClient
      * @param Migration $migration
+     *
+     * @throws FieldDatatypeMigrationFailed
      */
     public function migrate(Client $esClient, Migration $migration)
     {
         if ($migration->getType() == 'update') {
             if ($migration->getMappings()) {
+                (new FieldDatatypeMigration())->validate(
+                    $esClient->indices()->getMapping(
+                        ['index' => $migration->getIndex()]
+                    )[$migration->getIndex()]['mappings'],
+                    $migration->getMappings()
+                );
+                
                 $this->updateMappings($esClient, $migration);
             }
     
