@@ -133,7 +133,11 @@ The package is registered through the package discovery of laravel and Composer.
 ## Usage
 
 ### Start migration
->php artisan triadev:elasticsearch:migrate:start VERSION
+Orchestra migrations
+>php artisan triadev:elasticsearch:migrate:start VERSIONS
+
+Example:
+>php artisan triadev:elasticsearch:migrate:start migration1,migration2,migration3
 
 ### Show migrations
 >php artisan triadev:elasticsearch:migration:show

@@ -29,6 +29,12 @@ class StartMigrationTest extends TestCase
                 'index' => 'phpunit'
             ]);
         }
+    
+        if ($this->esClient->indices()->exists(['index' => 'phpunit_1.0.1'])) {
+            $this->esClient->indices()->delete([
+                'index' => 'phpunit_1.0.1'
+            ]);
+        }
         
         $this->migrationRepository = app(
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
@@ -64,7 +70,7 @@ class StartMigrationTest extends TestCase
             'index' => 'phpunit'
         ]));
         
-        $this->artisan('triadev:elasticsearch:migration:start', ['version' => '1.0.0']);
+        $this->artisan('triadev:elasticsearch:migration:start', ['versions' => '1.0.0']);
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
     
@@ -88,5 +94,25 @@ class StartMigrationTest extends TestCase
     
         $this->assertEquals('1.0.0', $migration->migration);
         $this->assertEquals('done', $migration->status);
+    }
+    
+    /**
+     * @test
+     */
+    public function it_starts_to_orchestra_migrations()
+    {
+        $this->assertNull($this->migrationRepository->find('1.0.0'));
+        $this->assertNull($this->migrationRepository->find('1.0.1'));
+    
+        $this->assertFalse($this->esClient->indices()->exists([
+            'index' => 'phpunit,phpunit_1.0.1'
+        ]));
+    
+        $this->artisan('triadev:elasticsearch:migration:start', ['versions' => '1.0.0, 1.0.1']);
+    
+        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit,phpunit_1.0.1']));
+        
+        $this->assertEquals('done', $this->migrationRepository->find('1.0.0')->status);
+        $this->assertEquals('done', $this->migrationRepository->find('1.0.1')->status);
     }
 }

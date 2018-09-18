@@ -12,7 +12,7 @@ class StartMigration extends Command
      * @var string
      */
     protected $signature = 'triadev:elasticsearch:migration:start
-                            {version : version of migration}';
+                            {versions : versions of migrations}';
     
     /**
      * The console command description.
@@ -31,6 +31,10 @@ class StartMigration extends Command
      */
     public function handle(ElasticsearchMigrationContract $elasticsearchMigration)
     {
-        $elasticsearchMigration->migrate($this->argument('version'));
+        $versions = explode(',', $this->argument('versions'));
+        
+        foreach ($versions as $version) {
+            $elasticsearchMigration->migrate(trim($version));
+        }
     }
 }
