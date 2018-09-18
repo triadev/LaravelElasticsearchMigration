@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ElasticsearchMigration extends Model
 {
@@ -18,7 +19,16 @@ class ElasticsearchMigration extends Model
      * @var array
      */
     protected $fillable = [
-        'migration',
-        'status'
+        'migration'
     ];
+    
+    /**
+     * Get migrations
+     *
+     * @return HasMany
+     */
+    public function migrations() : HasMany
+    {
+        return $this->hasMany(ElasticsearchMigrations::class, 'migration_id');
+    }
 }

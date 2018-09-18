@@ -3,6 +3,7 @@ namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsContract;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
 
 class ElasticsearchMigrationTest extends TestCase
@@ -10,11 +11,15 @@ class ElasticsearchMigrationTest extends TestCase
     /** @var ElasticsearchMigrationContract */
     private $repository;
     
+    /** @var ElasticsearchMigrationsContract */
+    private $migrationsRepository;
+    
     public function setUp()
     {
         parent::setUp();
         
         $this->repository = app(ElasticsearchMigrationContract::class);
+        $this->migrationsRepository = app(ElasticsearchMigrationsContract::class);
     }
     
     /**
@@ -24,7 +29,7 @@ class ElasticsearchMigrationTest extends TestCase
     {
         $this->assertNull($this->repository->find('1.0.0'));
         
-        $this->repository->createOrUpdate('1.0.0', 'done');
+        $this->repository->createOrUpdate('1.0.0');
     
         $this->assertInstanceOf(
             ElasticsearchMigration::class,
@@ -39,13 +44,12 @@ class ElasticsearchMigrationTest extends TestCase
     {
         $this->assertNull($this->repository->find('1.0.0'));
         
-        $this->repository->createOrUpdate('1.0.0', 'done');
+        $this->repository->createOrUpdate('1.0.0');
         
-        $this->assertEquals('done', $this->repository->find('1.0.0')->status);
-    
-        $this->repository->createOrUpdate('1.0.0', 'error');
-    
-        $this->assertEquals('error', $this->repository->find('1.0.0')->status);
+        $this->assertInstanceOf(
+            ElasticsearchMigration::class,
+            $this->repository->find('1.0.0')
+        );
     }
     
     /**
@@ -53,35 +57,12 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_finds_a_migration()
     {
-        $this->repository->createOrUpdate('1.0.0', 'done');
-    
-        $migration = $this->repository->find('1.0.0');
+        $this->repository->createOrUpdate('1.0.0');
         
-        $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals('done', $migration->status);
-    }
-    
-    /**
-     * @test
-     */
-    public function it_gets_all_migrations()
-    {
-        $this->repository->createOrUpdate('1.0.0', 'done');
-        $this->repository->createOrUpdate('1.0.1', 'error');
-        
-        $migrations = $this->repository->all();
-        
-        $this->assertCount(2, $migrations);
-        $this->assertArrayHasKey('id', $migrations->toArray()[0]);
-        $this->assertArrayHasKey('migration', $migrations->toArray()[0]);
-        $this->assertArrayHasKey('status', $migrations->toArray()[0]);
-    
-        $migrations = $this->repository->all(['migration', 'status']);
-    
-        $this->assertCount(2, $migrations);
-        $this->assertArrayNotHasKey('id', $migrations->toArray()[0]);
-        $this->assertArrayHasKey('migration', $migrations->toArray()[0]);
-        $this->assertArrayHasKey('status', $migrations->toArray()[0]);
+        $this->assertInstanceOf(
+            ElasticsearchMigration::class,
+            $this->repository->find('1.0.0')
+        );
     }
     
     /**
@@ -89,7 +70,7 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_deletes_a_migration()
     {
-        $this->repository->createOrUpdate('1.0.0', 'done');
+        $this->repository->createOrUpdate('1.0.0');
         
         $this->assertInstanceOf(
             ElasticsearchMigration::class,
@@ -99,5 +80,25 @@ class ElasticsearchMigrationTest extends TestCase
         $this->repository->delete('1.0.0');
     
         $this->assertNull($this->repository->find('1.0.0'));
+    }
+    
+    /**
+     * @test
+     */
+    public function it_gets_many_migrations()
+    {
+        $this->repository->createOrUpdate('1.0.0');
+    
+        $this->assertInstanceOf(
+            ElasticsearchMigration::class,
+            $this->repository->find('1.0.0')
+        );
+    
+        $this->migrationsRepository->create(1, 'create', 'phpunit');
+        $this->migrationsRepository->create(1, 'update', 'phpunit');
+        
+        $migration = $this->repository->find('1.0.0');
+        
+        $this->assertEquals(2, $migration->migrations()->count());
     }
 }
