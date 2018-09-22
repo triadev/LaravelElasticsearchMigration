@@ -1,20 +1,20 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'updateByQuery' => [
-            'type' => 'phpunit',
-            'query' => [
-                'match' => [
-                    'title' => 'Title'
-                ]
-            ],
-            'conflicts' => 'proceed',
-            'script' => [
-                'source' => 'ctx._source.count++',
-                'lang' => 'painless'
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::updateByQuery(
+        'phpunit',
+        [
+            'match' => [
+                'title' => 'Title'
             ]
+        ],
+        'phpunit',
+        [
+            'source' => 'ctx._source.count++',
+            'lang' => 'painless'
+        ],
+        [
+            'conflicts' => 'proceed'
         ]
-    ]
+    )
 ];

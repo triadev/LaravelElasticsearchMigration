@@ -1,8 +1,5 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'type' => 'delete'
-    ]
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::deleteIndex('phpunit')
 ];

@@ -1,10 +1,9 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'type' => 'update',
-        'mappings' => [
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::updateIndex(
+        'phpunit',
+        [
             'phpunit' => [
                 'properties' => [
                     'title' => [
@@ -19,5 +18,5 @@ return [
                 ]
             ]
         ]
-    ]
+    )
 ];

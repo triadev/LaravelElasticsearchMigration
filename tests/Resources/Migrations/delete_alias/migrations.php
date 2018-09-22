@@ -1,12 +1,11 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'alias' => [
-            'remove' => [
-                'alias'
-            ]
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::alias(
+        'phpunit',
+        [],
+        [
+            'alias'
         ]
-    ]
+    )
 ];

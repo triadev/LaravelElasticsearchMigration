@@ -3,7 +3,6 @@ namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
 use Triadev\EsMigration\Exception\IndexNotExist;
-use Triadev\EsMigration\Models\Migration;
 
 class Reindex
 {
@@ -11,43 +10,37 @@ class Reindex
      * Migrate
      *
      * @param Client $esClient
-     * @param Migration $migration
+     * @param \Triadev\EsMigration\Models\Migrations\Reindex $migration
      *
      * @throws IndexNotExist
      */
-    public function migrate(Client $esClient, Migration $migration)
+    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\Reindex $migration)
     {
-        if ($reindex = $migration->getReindex()) {
-            if (!$esClient->indices()->exists(['index' => $reindex->getIndex()])) {
-                throw new IndexNotExist();
-            }
-        
-            if ($reindex->isRefresh()) {
-                $esClient->indices()->refresh([
-                    'index' => sprintf(
-                        "%s,%s",
-                        $migration->getIndex(),
-                        $migration->getReindex()->getIndex()
-                    )
-                ]);
-            }
-            
-            $body = [
-                'source' => [
-                    'index' => $migration->getIndex()
-                ],
-                'dest' => [
-                    'index' => $migration->getReindex()->getIndex()
-                ]
-            ];
-            
-            $body = array_merge($body, $reindex->getGlobal());
-            $body['source'] = array_merge($body['source'], $reindex->getSource());
-            $body['dest'] = array_merge($body['dest'], $reindex->getDest());
-        
-            $esClient->reindex([
-                'body' => $body
+        if (!$esClient->indices()->exists(['index' => $migration->getDestIndex()])) {
+            throw new IndexNotExist();
+        }
+    
+        if ($migration->isRefreshSourceIndex()) {
+            $esClient->indices()->refresh([
+                'index' => $migration->getIndex()
             ]);
         }
+    
+        $body = [
+            'source' => [
+                'index' => $migration->getIndex()
+            ],
+            'dest' => [
+                'index' => $migration->getDestIndex()
+            ]
+        ];
+    
+        $body = array_merge($body, $migration->getGlobal());
+        $body['source'] = array_merge($body['source'], $migration->getSource());
+        $body['dest'] = array_merge($body['dest'], $migration->getDest());
+    
+        $esClient->reindex([
+            'body' => $body
+        ]);
     }
 }

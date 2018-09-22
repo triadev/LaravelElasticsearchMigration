@@ -2,7 +2,6 @@
 namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
-use Triadev\EsMigration\Models\Migration;
 
 class DeleteIndex
 {
@@ -10,14 +9,12 @@ class DeleteIndex
      * Migrate
      *
      * @param Client $esClient
-     * @param Migration $migration
+     * @param \Triadev\EsMigration\Models\Migrations\DeleteIndex $migration
      */
-    public function migrate(Client $esClient, Migration $migration)
+    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\DeleteIndex $migration)
     {
-        if ($migration->getType() == 'delete') {
-            $esClient->indices()->delete([
-                'index' => $migration->getIndex()
-            ]);
-        }
+        $esClient->indices()->delete([
+            'index' => $migration->getIndex()
+        ]);
     }
 }
