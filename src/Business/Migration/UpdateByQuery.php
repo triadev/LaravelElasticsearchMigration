@@ -2,7 +2,6 @@
 namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
-use Triadev\EsMigration\Models\Migration;
 
 class UpdateByQuery
 {
@@ -10,28 +9,30 @@ class UpdateByQuery
      * Migrate
      *
      * @param Client $esClient
-     * @param Migration $migration
+     * @param \Triadev\EsMigration\Models\Migrations\UpdateByQuery $migration
      */
-    public function migrate(Client $esClient, Migration $migration)
+    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\UpdateByQuery $migration)
     {
-        if ($migration->getUpdateByQuery()) {
-            $params = [
-                'index' => $migration->getIndex(),
-                'body' => [
-                    'query' => $migration->getUpdateByQuery()['query']
-                ]
-            ];
-            
-            if ($script = array_get($migration->getUpdateByQuery(), 'script')) {
-                $params['body']['script'] = $script;
-            }
-            
-            $params = array_merge(
-                $params,
-                array_except($migration->getUpdateByQuery(), ['query', 'script'])
-            );
-            
-            $esClient->updateByQuery($params);
+        $params = [
+            'index' => $migration->getIndex(),
+            'body' => [
+                'query' => $migration->getQuery()
+            ]
+        ];
+    
+        if ($migration->getType()) {
+            $params['type'] = $migration->getType();
         }
+        
+        if ($migration->getScript()) {
+            $params['body']['script'] = $migration->getScript();
+        }
+    
+        $params = array_merge(
+            $params,
+            $migration->getOptions()
+        );
+    
+        $esClient->updateByQuery($params);
     }
 }

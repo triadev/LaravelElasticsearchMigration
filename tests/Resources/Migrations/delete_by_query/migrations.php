@@ -1,16 +1,16 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'deleteByQuery' => [
-            'type' => 'phpunit',
-            'query' => [
-                'match' => [
-                    'title' => 'Title'
-                ]
-            ],
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::deleteByQuery(
+        'phpunit',
+        [
+            'match' => [
+                'title' => 'Title'
+            ]
+        ],
+        'phpunit',
+        [
             'conflicts' => 'proceed'
         ]
-    ]
+    )
 ];

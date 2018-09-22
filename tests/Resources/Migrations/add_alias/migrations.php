@@ -1,12 +1,10 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'alias' => [
-            'add' => [
-                'alias'
-            ]
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::alias(
+        'phpunit',
+        [
+            'alias'
         ]
-    ]
+    )
 ];

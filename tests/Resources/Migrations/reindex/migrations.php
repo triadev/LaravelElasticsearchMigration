@@ -1,11 +1,9 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'reindex' => [
-            'index' => 'phpunit_1.0.1',
-            'refresh' => true
-        ]
-    ]
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::reindex(
+        'phpunit',
+        'phpunit_1.0.1',
+        true
+    )
 ];

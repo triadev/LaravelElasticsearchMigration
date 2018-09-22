@@ -3,14 +3,23 @@ namespace Triadev\EsMigration;
 
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Triadev\EsMigration\Business\Migration\Alias;
 use Triadev\EsMigration\Business\Migration\CreateIndex;
+use Triadev\EsMigration\Business\Migration\DeleteByQuery;
 use Triadev\EsMigration\Business\Migration\DeleteIndex;
+use Triadev\EsMigration\Business\Migration\Reindex;
+use Triadev\EsMigration\Business\Migration\UpdateByQuery;
 use Triadev\EsMigration\Business\Migration\UpdateIndex;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
-use Triadev\EsMigration\Models\Alias;
-use Triadev\EsMigration\Models\Migration;
-use Triadev\EsMigration\Models\Reindex;
+
+use Triadev\EsMigration\Models\Migrations\CreateIndex as CreateIndexModel;
+use Triadev\EsMigration\Models\Migrations\UpdateIndex as UpdateIndexModel;
+use Triadev\EsMigration\Models\Migrations\DeleteIndex as DeleteIndexModel;
+use Triadev\EsMigration\Models\Migrations\Alias as AliasModel;
+use Triadev\EsMigration\Models\Migrations\DeleteByQuery as DeleteByQueryModel;
+use Triadev\EsMigration\Models\Migrations\UpdateByQuery as UpdateByQueryModel;
+use Triadev\EsMigration\Models\Migrations\Reindex as ReindexModel;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
 {
@@ -66,30 +75,39 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
         
         try {
-            $migrations = $this->buildMigrations($version);
+            $migrations = require sprintf(
+                "%s/%s/migrations.php",
+                $this->filePathMigrations,
+                $version
+            );
             
             if (!empty($migrations)) {
                 foreach ($migrations as $migration) {
-                    if ($migration->getType()) {
-                        switch ($migration->getType()) {
-                            case 'create':
-                                (new CreateIndex())->migrate($this->esClient, $migration);
-                                break;
-                            case 'update':
-                                (new UpdateIndex())->migrate($this->esClient, $migration);
-                                break;
-                            case 'delete':
-                                (new DeleteIndex())->migrate($this->esClient, $migration);
-                                break;
-                            default:
-                                break;
-                        }
+                    switch (get_class($migration)) {
+                        case CreateIndexModel::class:
+                            (new CreateIndex())->migrate($this->esClient, $migration);
+                            break;
+                        case UpdateIndexModel::class:
+                            (new UpdateIndex())->migrate($this->esClient, $migration);
+                            break;
+                        case DeleteIndexModel::class:
+                            (new DeleteIndex())->migrate($this->esClient, $migration);
+                            break;
+                        case AliasModel::class:
+                            (new Alias())->migrate($this->esClient, $migration);
+                            break;
+                        case DeleteByQueryModel::class:
+                            (new DeleteByQuery())->migrate($this->esClient, $migration);
+                            break;
+                        case UpdateByQueryModel::class:
+                            (new UpdateByQuery())->migrate($this->esClient, $migration);
+                            break;
+                        case ReindexModel::class:
+                            (new Reindex())->migrate($this->esClient, $migration);
+                            break;
+                        default:
+                            break;
                     }
-        
-                    (new \Triadev\EsMigration\Business\Migration\Alias())->migrate($this->esClient, $migration);
-                    (new \Triadev\EsMigration\Business\Migration\Reindex())->migrate($this->esClient, $migration);
-                    (new \Triadev\EsMigration\Business\Migration\DeleteByQuery())->migrate($this->esClient, $migration);
-                    (new \Triadev\EsMigration\Business\Migration\UpdateByQuery())->migrate($this->esClient, $migration);
                 }
     
                 $this->migrationRepository->createOrUpdate($version, 'done');
@@ -99,93 +117,5 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             throw $e;
         }
-    }
-    
-    /**
-     * @param string $version
-     * @return Migration[]
-     */
-    private function buildMigrations(string $version) : array
-    {
-        $migrationsConfigs = require sprintf("%s/%s/migrations.php", $this->filePathMigrations, $version);
-        
-        $result = [];
-        
-        foreach ($migrationsConfigs as $migrationsConfig) {
-            $migration = new Migration(array_get($migrationsConfig, 'index'));
-            
-            $migration->setType(array_get($migrationsConfig, 'type'));
-            $migration->setMappings(array_get($migrationsConfig, 'mappings'));
-            $migration->setSettings(array_get($migrationsConfig, 'settings'));
-            
-            if ($closeIndex = array_get($migrationsConfig, 'closeIndex')) {
-                $migration->setCloseIndex($closeIndex);
-            }
-            
-            $migration = $this->buildAliasConfig($migration, $migrationsConfig);
-            $migration = $this->buildReindexConfig($migration, $migrationsConfig);
-    
-            if ($deleteByQuery = array_get($migrationsConfig, 'deleteByQuery')) {
-                $migration->setDeleteByQuery($deleteByQuery);
-            }
-    
-            if ($updateByQuery = array_get($migrationsConfig, 'updateByQuery')) {
-                $migration->setUpdateByQuery($updateByQuery);
-            }
-            
-            $result[] = $migration;
-        }
-        
-        return $result;
-    }
-    
-    private function buildAliasConfig(Migration $migration, array $migrationsConfig) : Migration
-    {
-        if ($aliasConfig = array_get($migrationsConfig, 'alias')) {
-            $alias = new Alias();
-        
-            if ($add = array_get($aliasConfig, 'add')) {
-                $alias->setAdd($add);
-            }
-        
-            if ($remove = array_get($aliasConfig, 'remove')) {
-                $alias->setRemove($remove);
-            }
-    
-            if ($removeIndex = array_get($aliasConfig, 'removeIndex')) {
-                $alias->setRemoveIndex($remove);
-            }
-        
-            $migration->setAlias($alias);
-        }
-        
-        return $migration;
-    }
-    
-    private function buildReindexConfig(Migration $migration, array $migrationsConfig) : Migration
-    {
-        if ($reindexConfig = array_get($migrationsConfig, 'reindex')) {
-            $reindex = new Reindex(array_get($reindexConfig, 'index'));
-        
-            if ($refreshIndex = array_get($reindexConfig, 'refresh')) {
-                $reindex->setRefresh($refreshIndex);
-            }
-    
-            if ($global = array_get($reindexConfig, 'global')) {
-                $reindex->setGlobal($global);
-            }
-    
-            if ($source = array_get($reindexConfig, 'source')) {
-                $reindex->setSource($source);
-            }
-    
-            if ($dest = array_get($reindexConfig, 'dest')) {
-                $reindex->setDest($dest);
-            }
-        
-            $migration->setReindex($reindex);
-        }
-        
-        return $migration;
     }
 }

@@ -2,7 +2,6 @@
 namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
-use Triadev\EsMigration\Models\Migration;
 
 class CreateIndex
 {
@@ -10,23 +9,21 @@ class CreateIndex
      * Migrate
      *
      * @param Client $esClient
-     * @param Migration $migration
+     * @param \Triadev\EsMigration\Models\Migrations\CreateIndex $migration
      */
-    public function migrate(Client $esClient, Migration $migration)
+    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\CreateIndex $migration)
     {
-        if ($migration->getType() == 'create') {
-            $body = [
-                'mappings' => $migration->getMappings()
-            ];
+        $body = [
+            'mappings' => $migration->getMappings()
+        ];
     
-            if ($migration->getSettings()) {
-                $body['settings'] = $migration->getSettings();
-            }
-    
-            $esClient->indices()->create([
-                'index' => $migration->getIndex(),
-                'body' => $body
-            ]);
+        if ($migration->getSettings()) {
+            $body['settings'] = $migration->getSettings();
         }
+    
+        $esClient->indices()->create([
+            'index' => $migration->getIndex(),
+            'body' => $body
+        ]);
     }
 }

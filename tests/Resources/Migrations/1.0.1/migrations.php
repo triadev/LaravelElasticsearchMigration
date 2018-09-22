@@ -1,10 +1,9 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit_1.0.1',
-        'type' => 'create',
-        'mappings' => [
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::createIndex(
+        'phpunit_1.0.1',
+        [
             'phpunit' => [
                 'dynamic' => 'strict',
                 'properties' => [
@@ -14,8 +13,8 @@ return [
                 ]
             ]
         ],
-        'settings' => [
+        [
             'refresh_interval' => "30s"
         ]
-    ]
+    )
 ];

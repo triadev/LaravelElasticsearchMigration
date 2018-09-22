@@ -1,10 +1,9 @@
 <?php
 
 return [
-    [
-        'index' => 'phpunit',
-        'type' => 'create',
-        'mappings' => [
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::createIndex(
+        'phpunit',
+        [
             'phpunit' => [
                 'dynamic' => 'strict',
                 'properties' => [
@@ -17,14 +16,13 @@ return [
                 ]
             ]
         ],
-        'settings' => [
+        [
             'refresh_interval' => "30s"
         ]
-    ],
-    [
-        'index' => 'phpunit',
-        'type' => 'update',
-        'mappings' => [
+    ),
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::updateIndex(
+        'phpunit',
+        [
             'phpunit' => [
                 'properties' => [
                     'description' => [
@@ -33,17 +31,16 @@ return [
                 ]
             ]
         ],
-        'settings' => [
+        [
             'index' => [
                 'refresh_interval' => "60s"
             ]
         ]
-    ],
-    [
-        'index' => 'phpunit',
-        'type' => 'update',
-        'closeIndex' => true,
-        'settings' => [
+    ),
+    \Triadev\EsMigration\Business\Factory\MigrationBuilder::updateIndex(
+        'phpunit',
+        null,
+        [
             'analysis' => [
                 'analyzer' => [
                     'content' => [
@@ -52,6 +49,7 @@ return [
                     ]
                 ]
             ]
-        ]
-    ]
+        ],
+        true
+    )
 ];
