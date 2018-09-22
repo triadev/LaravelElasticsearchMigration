@@ -53,6 +53,17 @@ The package is registered through the package discovery of laravel and Composer.
 
 ## Usage
 
+### Build migration
+>Triadev\EsMigration\Business\Factory\MigrationBuilder::TYPE()
+
+- createIndex
+- updateIndex
+- deleteIndex
+- alias
+- reindex
+- deleteByQuery
+- updateByQuery
+
 ### Start migration
 Orchestra migrations
 >php artisan triadev:elasticsearch:migrate:start VERSIONS
