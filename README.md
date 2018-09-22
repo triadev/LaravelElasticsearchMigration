@@ -75,6 +75,7 @@ Example:
 >php artisan triadev:elasticsearch:migration:show
 
 ## Roadmap
+- migrations from database [Branch](https://github.com/triadev/LaravelElasticsearchMigration/tree/database_migrations)
 - create/delete templates
 - shrink index
 - split index
