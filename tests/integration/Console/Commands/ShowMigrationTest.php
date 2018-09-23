@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class ShowMigrationTest extends TestCase
 {
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract */
     private $migrationRepository;
     
     public function setUp()
@@ -14,7 +14,7 @@ class ShowMigrationTest extends TestCase
         parent::setUp();
         
         $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class
         );
     }
     

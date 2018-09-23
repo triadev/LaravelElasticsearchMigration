@@ -11,6 +11,7 @@ use Triadev\EsMigration\Business\Migration\Reindex;
 use Triadev\EsMigration\Business\Migration\UpdateByQuery;
 use Triadev\EsMigration\Business\Migration\UpdateIndex;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
+use Triadev\EsMigration\Contract\ElasticsearchMigrationDatabaseContract;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 
 use Triadev\EsMigration\Models\Migrations\CreateIndex as CreateIndexModel;
@@ -29,7 +30,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /** @var string|null */
     private $filePathMigrations;
     
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract */
     private $migrationRepository;
     
     /**
@@ -42,7 +43,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $this->filePathMigrations = config('triadev-elasticsearch-migration.migration.filePath');
         
         $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class
         );
     }
     
@@ -67,7 +68,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /**
      * @inheritdoc
      */
-    public function migrate(string $version)
+    public function migrate(string $version, string $source = 'file')
     {
         $migration = $this->migrationRepository->find($version);
         if ($migration && $migration->getAttribute('status') == 'done') {
@@ -75,11 +76,19 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
         
         try {
-            $migrations = require sprintf(
-                "%s/%s/migrations.php",
-                $this->filePathMigrations,
-                $version
-            );
+            $migrations = [];
+            
+            if ($source == self::MIGRATION_SOURCE_TYPE_FILE) {
+                $migrations = require sprintf(
+                    "%s/%s/migrations.php",
+                    $this->filePathMigrations,
+                    $version
+                );
+            } elseif ($source == self::MIGRATION_SOURCE_TYPE_DATABASE) {
+                /** @var ElasticsearchMigrationDatabaseContract $elasticsearchDatabaseService */
+                $elasticsearchDatabaseService = app(ElasticsearchMigrationDatabaseContract::class);
+                $migrations = $elasticsearchDatabaseService->getMigration($version);
+            }
             
             if (!empty($migrations)) {
                 foreach ($migrations as $migration) {

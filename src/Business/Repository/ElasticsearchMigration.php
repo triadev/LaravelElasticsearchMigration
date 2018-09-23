@@ -1,7 +1,6 @@
 <?php
 namespace Triadev\EsMigration\Business\Repository;
 
-use Illuminate\Database\Eloquent\Collection;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -10,8 +9,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      * @inheritdoc
      */
     public function createOrUpdate(
-        string $migration,
-        string $status
+        string $migration
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigration {
         $dbMigration = $this->find($migration);
         
@@ -20,7 +18,6 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             $dbMigration->migration = $migration;
         }
         
-        $dbMigration->status = $status;
         $dbMigration->saveOrFail();
         
         return $dbMigration;
@@ -34,14 +31,6 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::where('migration', $migration)
             ->orderBy('created_at', 'desc')
             ->first();
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function all(array $fields = ['*']) : Collection
-    {
-        return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::all($fields);
     }
     
     /**
