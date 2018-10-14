@@ -42,13 +42,25 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_updates_a_migration()
     {
-        $this->assertNull($this->repository->find('1.0.0'));
-        
         $this->repository->createOrUpdate('1.0.0');
         
-        $this->assertInstanceOf(
-            ElasticsearchMigration::class,
-            $this->repository->find('1.0.0')
+        $this->assertEquals(
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
+            $this->repository->find('1.0.0')->status
+        );
+    
+        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE);
+    
+        $this->assertEquals(
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->repository->find('1.0.0')->status
+        );
+    
+        $this->repository->createOrUpdate('1.0.0', 999);
+    
+        $this->assertEquals(
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->repository->find('1.0.0')->status
         );
     }
     
@@ -100,5 +112,24 @@ class ElasticsearchMigrationTest extends TestCase
         $migration = $this->repository->find('1.0.0');
         
         $this->assertEquals(2, $migration->migrations()->count());
+    }
+    
+    /**
+     * @test
+     */
+    public function it_gets_all_migrations()
+    {
+        $this->assertEmpty($this->repository->all());
+    
+        $this->repository->createOrUpdate('1.0.0');
+        $this->repository->createOrUpdate('1.0.1');
+        
+        $migrations = $this->repository->all(['id', 'migration', 'status']);
+        
+        $this->assertEquals('1.0.0', $migrations[0]->migration);
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $migrations[0]->status);
+        
+        $this->assertEquals('1.0.1', $migrations[1]->migration);
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $migrations[1]->status);
     }
 }

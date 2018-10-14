@@ -34,15 +34,6 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
                 ShowMigration::class
             ]);
         }
-        
-        $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class,
-            function () {
-                return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStatus::class
-                );
-            }
-        );
     
         $this->app->bind(
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class,

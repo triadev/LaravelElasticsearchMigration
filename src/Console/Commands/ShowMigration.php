@@ -2,7 +2,7 @@
 namespace Triadev\EsMigration\Console\Commands;
 
 use Illuminate\Console\Command;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ShowMigration extends Command
 {
@@ -25,13 +25,18 @@ class ShowMigration extends Command
     /**
      * Execute the console command.
      *
-     * @param ElasticsearchMigrationStatusContract $elasticsearchMigrationStatusRepository
+     * @param ElasticsearchMigrationContract $elasticsearchMigrationStatusRepository
      */
-    public function handle(ElasticsearchMigrationStatusContract $elasticsearchMigrationStatusRepository)
+    public function handle(ElasticsearchMigrationContract $elasticsearchMigrationStatusRepository)
     {
         $sortField = $this->argument('sortField');
         
-        $migrations = $elasticsearchMigrationStatusRepository->all(['migration', 'status', 'created_at', 'updated_at']);
+        $migrations = $elasticsearchMigrationStatusRepository->all([
+            'migration',
+            'status',
+            'created_at',
+            'updated_at'
+        ]);
         
         switch ($this->argument('sortOrder')) {
             case 'asc':

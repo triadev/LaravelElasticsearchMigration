@@ -22,6 +22,8 @@ use Triadev\EsMigration\Models\Migrations\DeleteByQuery as DeleteByQueryModel;
 use Triadev\EsMigration\Models\Migrations\UpdateByQuery as UpdateByQueryModel;
 use Triadev\EsMigration\Models\Migrations\Reindex as ReindexModel;
 
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as EsMigrationRepositoryInterface;
+
 class ElasticsearchMigration implements ElasticsearchMigrationContract
 {
     /** @var Client */
@@ -30,7 +32,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /** @var string|null */
     private $filePathMigrations;
     
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract */
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
     private $migrationRepository;
     
     /**
@@ -42,9 +44,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         
         $this->filePathMigrations = config('triadev-elasticsearch-migration.migration.filePath');
         
-        $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class
-        );
+        $this->migrationRepository = app(EsMigrationRepositoryInterface::class);
     }
     
     private function buildElasticsearchClient() : Client
@@ -71,7 +71,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     public function migrate(string $version, string $source = 'file')
     {
         $migration = $this->migrationRepository->find($version);
-        if ($migration && $migration->status == 'done') {
+        if ($migration &&
+            $migration->status == EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_DONE) {
             throw new MigrationAlreadyDone();
         }
         
@@ -119,10 +120,16 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                     }
                 }
     
-                $this->migrationRepository->createOrUpdate($version, 'done');
+                $this->migrationRepository->createOrUpdate(
+                    $version,
+                    EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_DONE
+                );
             }
         } catch (\Exception $e) {
-            $this->migrationRepository->createOrUpdate($version, 'error');
+            $this->migrationRepository->createOrUpdate(
+                $version,
+                EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_ERROR
+            );
             
             throw $e;
         }

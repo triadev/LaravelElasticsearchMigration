@@ -15,7 +15,7 @@ class StartMigrationTest extends TestCase
     /** @var Client */
     private $esClient;
     
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract */
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
     private $migrationRepository;
     
     /** @var ElasticsearchMigrationDatabaseContract */
@@ -42,7 +42,7 @@ class StartMigrationTest extends TestCase
         }
         
         $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
         );
     }
     
@@ -100,7 +100,10 @@ class StartMigrationTest extends TestCase
         $migration = $this->migrationRepository->find('1.0.0');
     
         $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals('done', $migration->status);
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $migration->status
+        );
     }
     
     /**
@@ -204,7 +207,10 @@ class StartMigrationTest extends TestCase
         $migration = $this->migrationRepository->find('1.0.0');
     
         $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals('done', $migration->status);
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $migration->status
+        );
     }
     
     /**
@@ -225,8 +231,15 @@ class StartMigrationTest extends TestCase
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit,phpunit_1.0.1']));
         
-        $this->assertEquals('done', $this->migrationRepository->find('1.0.0')->status);
-        $this->assertEquals('done', $this->migrationRepository->find('1.0.1')->status);
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->migrationRepository->find('1.0.0')->status
+        );
+        
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->migrationRepository->find('1.0.1')->status
+        );
     }
     
     /**
@@ -292,7 +305,14 @@ class StartMigrationTest extends TestCase
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit,phpunit_1.0.1']));
     
-        $this->assertEquals('done', $this->migrationRepository->find('1.0.0')->status);
-        $this->assertEquals('done', $this->migrationRepository->find('1.0.1')->status);
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->migrationRepository->find('1.0.0')->status
+        );
+        
+        $this->assertEquals(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            $this->migrationRepository->find('1.0.1')->status
+        );
     }
 }

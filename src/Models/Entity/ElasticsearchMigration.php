@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property integer $id
  * @property string $migration
+ * @property string $status
  */
 class ElasticsearchMigration extends Model
 {
