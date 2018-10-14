@@ -64,15 +64,28 @@ The package is registered through the package discovery of laravel and Composer.
 - deleteByQuery
 - updateByQuery
 
-### Start migration
+### Commands
+
+#### Start migration
 Orchestra migrations
 >php artisan triadev:elasticsearch:migrate:start VERSIONS
 
 Example:
 >php artisan triadev:elasticsearch:migrate:start migration1,migration2,migration3
 
-### Show migrations
+#### Show migrations
 >php artisan triadev:elasticsearch:migration:show
+
+### Events
+[Documentation: Laravel Events](https://laravel.com/docs/5.7/events)
+
+Namespace: Triadev\EsMigration\Business\Events
+
+| Event        | Status  |
+|:-------------:|:-----:|
+| MigrationRunning | Migration is running |
+| MigrationError | Migration is failed |
+| MigrationDone | Migration is done |
 
 ## Roadmap
 - create/delete templates
