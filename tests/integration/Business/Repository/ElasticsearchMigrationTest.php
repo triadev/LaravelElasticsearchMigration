@@ -2,6 +2,9 @@
 namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
+use Triadev\EsMigration\Business\Events\MigrationDone;
+use Triadev\EsMigration\Business\Events\MigrationError;
+use Triadev\EsMigration\Business\Events\MigrationRunning;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsContract;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
@@ -42,26 +45,31 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_updates_a_migration()
     {
-        $this->repository->createOrUpdate('1.0.0');
+        $this->expectsEvents([
+            MigrationRunning::class,
+            MigrationError::class,
+            MigrationDone::class
+        ]);
         
-        $this->assertEquals(
-            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
-            $this->repository->find('1.0.0')->status
-        );
+        // WAIT
+        $this->repository->createOrUpdate('1.0.0');
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $this->repository->find('1.0.0')->status);
     
+        // ERROR
+        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR);
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR, $this->repository->find('1.0.0')->status);
+        
+        // RUNNING
+        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_RUNNING);
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_RUNNING, $this->repository->find('1.0.0')->status);
+        
+        // DONE
         $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE);
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
     
-        $this->assertEquals(
-            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->repository->find('1.0.0')->status
-        );
-    
+        // DONE => invalid status id
         $this->repository->createOrUpdate('1.0.0', 999);
-    
-        $this->assertEquals(
-            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->repository->find('1.0.0')->status
-        );
+        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
     }
     
     /**

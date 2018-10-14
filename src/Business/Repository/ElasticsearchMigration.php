@@ -2,6 +2,9 @@
 namespace Triadev\EsMigration\Business\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
+use Triadev\EsMigration\Business\Events\MigrationDone;
+use Triadev\EsMigration\Business\Events\MigrationError;
+use Triadev\EsMigration\Business\Events\MigrationRunning;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -25,6 +28,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
         
         $dbMigration->saveOrFail();
+        
+        $this->dispatchStatus($dbMigration);
         
         return $dbMigration;
     }
@@ -71,5 +76,27 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
         
         return false;
+    }
+    
+    private function dispatchStatus(\Triadev\EsMigration\Models\Entity\ElasticsearchMigration $migration)
+    {
+        switch ($migration->status) {
+            case self::ELASTICSEARCH_MIGRATION_STATUS_RUNNING:
+                $event = new MigrationRunning($migration);
+                break;
+            case self::ELASTICSEARCH_MIGRATION_STATUS_DONE:
+                $event = new MigrationDone($migration);
+                break;
+            case self::ELASTICSEARCH_MIGRATION_STATUS_ERROR:
+                $event = new MigrationError($migration);
+                break;
+            default:
+                $event = null;
+                break;
+        }
+        
+        if ($event) {
+            event($event);
+        }
     }
 }
