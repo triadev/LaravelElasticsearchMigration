@@ -3,10 +3,11 @@ namespace Tests\Integration\Console\Commands;
 
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ShowMigrationTest extends TestCase
 {
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract */
+    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
     private $migrationRepository;
     
     public function setUp()
@@ -14,7 +15,7 @@ class ShowMigrationTest extends TestCase
         parent::setUp();
         
         $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStatusContract::class
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
         );
     }
     
@@ -27,13 +28,19 @@ class ShowMigrationTest extends TestCase
         
         Carbon::setTestNow($now);
         
-        $this->migrationRepository->createOrUpdate('1.0.0', 'done');
+        $this->migrationRepository->createOrUpdate(
+            '1.0.0',
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE
+        );
         
         $now->addSeconds(1);
     
         Carbon::setTestNow($now);
         
-        $this->migrationRepository->createOrUpdate('1.0.1', 'error');
+        $this->migrationRepository->createOrUpdate(
+            '1.0.1',
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR
+        );
         
         $this->artisan('triadev:elasticsearch:migration:show')
             ->assertExitCode(0);
