@@ -3,6 +3,12 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property integer $id
+ * @property integer $migration_id
+ * @property string $type
+ * @property string $index
+ */
 class ElasticsearchMigrations extends Model
 {
     /**
@@ -11,17 +17,6 @@ class ElasticsearchMigrations extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migrations';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration_id',
-        'type',
-        'index'
-    ];
     
     /**
      * Get migration by type

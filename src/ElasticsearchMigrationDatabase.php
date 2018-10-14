@@ -27,6 +27,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
     /** @var ElasticsearchMigrationsContract */
     private $elasticsearchMigrationsRepository;
     
+    /**
+     * ElasticsearchMigrationDatabase constructor.
+     * @param ElasticsearchMigrationContract $elasticsearchMigrationRepository
+     * @param ElasticsearchMigrationsContract $elasticsearchMigrationsRepository
+     */
     public function __construct(
         ElasticsearchMigrationContract $elasticsearchMigrationRepository,
         ElasticsearchMigrationsContract $elasticsearchMigrationsRepository
@@ -61,32 +66,32 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
     
         try {
             $migrations = $this->elasticsearchMigrationsRepository->create(
-                $dbMigration->getAttribute('id'),
+                $dbMigration->id,
                 $type,
                 $index
             );
             
-            $migrationsId = $migrations->getAttribute('id');
+            $migrationsId = $migrations->id;
     
             switch ($type) {
-                case 'createIndex':
+                case self::MIGRATION_TYPE_CREATE_INDEX:
                     $this->createIndexMigration($migrationsId, $params);
                     break;
-                case 'updateIndex':
+                case self::MIGRATION_TYPE_UPDATE_INDEX:
                     $this->updateIndexMigration($migrationsId, $params);
                     break;
-                case 'deleteIndex':
+                case self::MIGRATION_TYPE_DELETE_INDEX:
                     break;
-                case 'alias':
+                case self::MIGRATION_TYPE_ALIAS:
                     $this->aliasMigration($migrationsId, $params);
                     break;
-                case 'deleteByQuery':
+                case self::MIGRATION_TYPE_DELETE_BY_QUERY:
                     $this->deleteByQueryMigration($migrationsId, $params);
                     break;
-                case 'updateByQuery':
+                case self::MIGRATION_TYPE_UPDATE_BY_QUERY:
                     $this->updateByQueryMigration($migrationsId, $params);
                     break;
-                case 'reindex':
+                case self::MIGRATION_TYPE_REINDEX:
                     $this->reindexMigration($migrationsId, $params);
                     break;
                 default:
@@ -116,24 +121,24 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                 if ($migrationByType) {
                     $migrationByType = is_object($migrationByType) ? $migrationByType->first() : $migrationByType;
                     
-                    $index = $dbMigration->getAttribute('index');
+                    $index = $dbMigration->index;
                     
-                    switch ($dbMigration->getAttribute('type')) {
-                        case 'createIndex':
+                    switch ($dbMigration->type) {
+                        case self::MIGRATION_TYPE_CREATE_INDEX:
                             if ($migrationByType instanceof ElasticsearchMigrationsCreateIndex) {
-                                $settings = $migrationByType->getAttribute('settings');
+                                $settings = $migrationByType->settings;
                                 
                                 $migrations[] = MigrationBuilder::createIndex(
                                     $index,
-                                    json_decode($migrationByType->getAttribute('mappings'), true),
+                                    json_decode($migrationByType->mappings, true),
                                     $settings != null ? json_decode($settings, true) : null
                                 );
                             }
                             break;
-                        case 'updateIndex':
+                        case self::MIGRATION_TYPE_UPDATE_INDEX:
                             if ($migrationByType instanceof ElasticsearchMigrationsUpdateIndex) {
-                                $mappings = $migrationByType->getAttribute('mappings');
-                                $settings = $migrationByType->getAttribute('settings');
+                                $mappings = $migrationByType->mappings;
+                                $settings = $migrationByType->settings;
         
                                 $migrations[] = MigrationBuilder::updateIndex(
                                     $index,
@@ -143,14 +148,14 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                                 );
                             }
                             break;
-                        case 'deleteIndex':
+                        case self::MIGRATION_TYPE_DELETE_INDEX:
                             $migrations[] = MigrationBuilder::deleteIndex($index);
                             break;
-                        case 'alias':
+                        case self::MIGRATION_TYPE_ALIAS:
                             if ($migrationByType instanceof ElasticsearchMigrationsAlias) {
-                                $add = $migrationByType->getAttribute('add');
-                                $remove = $migrationByType->getAttribute('remove');
-                                $removeIndices = $migrationByType->getAttribute('remove_indices');
+                                $add = $migrationByType->add;
+                                $remove = $migrationByType->remove;
+                                $removeIndices = $migrationByType->remove_indices;
                                 
                                 $migrations[] = MigrationBuilder::alias(
                                     $index,
@@ -160,38 +165,38 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                                 );
                             }
                             break;
-                        case 'deleteByQuery':
+                        case self::MIGRATION_TYPE_DELETE_BY_QUERY:
                             if ($migrationByType instanceof ElasticsearchMigrationsDeleteByQuery) {
                                 $migrations[] = MigrationBuilder::deleteByQuery(
                                     $index,
-                                    json_decode($migrationByType->getAttribute('query'), true),
-                                    $migrationByType->getAttribute('type'),
-                                    json_decode($migrationByType->getAttribute('options'), true)
+                                    json_decode($migrationByType->query, true),
+                                    $migrationByType->type,
+                                    json_decode($migrationByType->options, true)
                                 );
                             }
                             break;
-                        case 'updateByQuery':
+                        case self::MIGRATION_TYPE_UPDATE_BY_QUERY:
                             if ($migrationByType instanceof ElasticsearchMigrationsUpdateByQuery) {
-                                $script = $migrationByType->getAttribute('script');
+                                $script = $migrationByType->script;
                                 
                                 $migrations[] = MigrationBuilder::updateByQuery(
                                     $index,
-                                    json_decode($migrationByType->getAttribute('query'), true),
-                                    $migrationByType->getAttribute('type'),
+                                    json_decode($migrationByType->query, true),
+                                    $migrationByType->type,
                                     $script != null ? json_decode($script, true) : null,
-                                    json_decode($migrationByType->getAttribute('options'), true)
+                                    json_decode($migrationByType->options, true)
                                 );
                             }
                             break;
-                        case 'reindex':
+                        case self::MIGRATION_TYPE_REINDEX:
                             if ($migrationByType instanceof ElasticsearchMigrationsReindex) {
                                 $migrations[] = MigrationBuilder::reindex(
                                     $index,
-                                    $migrationByType->getAttribute('dest_index'),
-                                    (bool)$migrationByType->getAttribute('refresh_source_index'),
-                                    json_decode($migrationByType->getAttribute('global'), true),
-                                    json_decode($migrationByType->getAttribute('source'), true),
-                                    json_decode($migrationByType->getAttribute('dest'), true)
+                                    $migrationByType->dest_index,
+                                    (bool)$migrationByType->refresh_source_index,
+                                    json_decode($migrationByType->global, true),
+                                    json_decode($migrationByType->source, true),
+                                    json_decode($migrationByType->dest, true)
                                 );
                             }
                             break;
@@ -205,6 +210,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         return $migrations;
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function createIndexMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsCreateIndexContract $repository */
@@ -217,6 +227,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         );
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function updateIndexMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsUpdateIndexContract $repository */
@@ -235,6 +250,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         );
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function aliasMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsAliasContract $repository */
@@ -248,6 +268,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         );
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function deleteByQueryMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsDeleteByQueryContract $repository */
@@ -261,6 +286,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         );
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function updateByQueryMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsUpdateByQueryContract $repository */
@@ -275,6 +305,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         );
     }
     
+    /**
+     * @param int $migrationsId
+     * @param array $params
+     * @throws \Throwable
+     */
     private function reindexMigration(int $migrationsId, array $params)
     {
         /** @var ElasticsearchMigrationsReindexContract $repository */

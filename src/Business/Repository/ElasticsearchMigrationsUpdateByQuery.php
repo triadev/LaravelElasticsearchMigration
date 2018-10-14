@@ -16,6 +16,7 @@ class ElasticsearchMigrationsUpdateByQuery implements ElasticsearchMigrationsUpd
         array $options = []
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateByQuery {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateByQuery();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->query = json_encode($query);
         $dbMigration->type = $type;

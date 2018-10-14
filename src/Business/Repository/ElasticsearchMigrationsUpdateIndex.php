@@ -15,6 +15,7 @@ class ElasticsearchMigrationsUpdateIndex implements ElasticsearchMigrationsUpdat
         bool $closeIndex = false
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateIndex {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateIndex();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->close_index = $closeIndex;
     

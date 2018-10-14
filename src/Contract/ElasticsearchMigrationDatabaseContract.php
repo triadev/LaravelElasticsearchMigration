@@ -3,6 +3,14 @@ namespace Triadev\EsMigration\Contract;
 
 interface ElasticsearchMigrationDatabaseContract
 {
+    const MIGRATION_TYPE_CREATE_INDEX = 'createIndex';
+    const MIGRATION_TYPE_UPDATE_INDEX = 'updateIndex';
+    const MIGRATION_TYPE_DELETE_INDEX = 'deleteIndex';
+    const MIGRATION_TYPE_ALIAS = 'alias';
+    const MIGRATION_TYPE_DELETE_BY_QUERY = 'deleteByQuery';
+    const MIGRATION_TYPE_UPDATE_BY_QUERY = 'updateByQuery';
+    const MIGRATION_TYPE_REINDEX = 'reindex';
+    
     /**
      * Create migration
      *

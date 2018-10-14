@@ -17,6 +17,7 @@ class ElasticsearchMigrationsReindex implements ElasticsearchMigrationsReindexCo
         array $dest = []
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsReindex {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsReindex();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->dest_index = $destIndex;
         $dbMigration->refresh_source_index = $refreshSourceIndex;

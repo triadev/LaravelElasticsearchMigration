@@ -3,6 +3,12 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property integer $migrations_id
+ * @property string|null $mappings
+ * @property string|null $settings
+ * @property bool $close_index
+ */
 class ElasticsearchMigrationsUpdateIndex extends Model
 {
     /**
@@ -11,16 +17,4 @@ class ElasticsearchMigrationsUpdateIndex extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migrations_update_index';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration_id',
-        'mappings',
-        'settings',
-        'close_index'
-    ];
 }

@@ -3,6 +3,13 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property integer $migrations_id
+ * @property string $query
+ * @property string|null $type
+ * @property string|null $script
+ * @property string $options
+ */
 class ElasticsearchMigrationsUpdateByQuery extends Model
 {
     /**
@@ -11,17 +18,4 @@ class ElasticsearchMigrationsUpdateByQuery extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migrations_update_by_query';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration_id',
-        'query',
-        'type',
-        'script',
-        'options'
-    ];
 }

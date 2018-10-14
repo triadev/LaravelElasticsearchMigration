@@ -14,6 +14,7 @@ class ElasticsearchMigrations implements ElasticsearchMigrationsContract
         string $index
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrations {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrations();
+        
         $dbMigration->migration_id = $migrationId;
         $dbMigration->type = $type;
         $dbMigration->index = $index;
