@@ -4,18 +4,17 @@ namespace Triadev\EsMigration\Models\Entity;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @property integer $migrations_id
+ * @property integer $migration_step_id
  * @property string $query
  * @property string|null $type
- * @property string|null $script
  * @property string $options
  */
-class ElasticsearchMigrationsUpdateByQuery extends Model
+class ElasticsearchMigrationStepDeleteByQuery extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'triadev_elasticsearch_migrations_update_by_query';
+    protected $table = 'triadev_elasticsearch_migration_step_delete_by_query';
 }

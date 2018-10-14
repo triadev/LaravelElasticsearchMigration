@@ -81,11 +81,19 @@ Example:
 
 Namespace: Triadev\EsMigration\Business\Events
 
+#### Migration
 | Event        | Status  |
 |:-------------:|:-----:|
 | MigrationRunning | Migration is running |
 | MigrationError | Migration is failed |
 | MigrationDone | Migration is done |
+
+#### Migration - Step
+| Event        | Status  |
+|:-------------:|:-----:|
+| MigrationStepRunning | Migration step is running |
+| MigrationStepError | Migration step is failed |
+| MigrationStepDone | Migration step is done |
 
 ## Roadmap
 - create/delete templates

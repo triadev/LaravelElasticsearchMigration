@@ -13,9 +13,9 @@ class CreateElasticsearchMigrationsReindexTable extends Migration
      */
     public function up()
     {
-        Schema::create('triadev_elasticsearch_migrations_reindex', function (Blueprint $table) {
+        Schema::create('triadev_elasticsearch_migration_step_reindex', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('migrations_id')->unique();
+            $table->bigInteger('migration_step_id')->unique();
             $table->string('dest_index');
             $table->boolean('refresh_source_index');
             $table->string('global');
@@ -23,7 +23,7 @@ class CreateElasticsearchMigrationsReindexTable extends Migration
             $table->string('dest');
             $table->timestamps();
             
-            $table->foreign('migrations_id')->references('migration_id')->on('triadev_elasticsearch_migrations');
+            $table->foreign('migration_step_id')->references('migration_id')->on('triadev_elasticsearch_migration_steps');
         });
     }
 
@@ -34,6 +34,6 @@ class CreateElasticsearchMigrationsReindexTable extends Migration
      */
     public function down()
     {
-        Schema::drop('triadev_elasticsearch_migrations_reindex');
+        Schema::drop('triadev_elasticsearch_migration_step_reindex');
     }
 }

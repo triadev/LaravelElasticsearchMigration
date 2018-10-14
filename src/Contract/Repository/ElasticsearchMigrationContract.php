@@ -16,13 +16,15 @@ interface ElasticsearchMigrationContract
      *
      * @param string $migration
      * @param int $status
+     * @param string|null $error
      * @return ElasticsearchMigration
      *
      * @throws \Throwable
      */
     public function createOrUpdate(
         string $migration,
-        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT
+        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
+        ?string $error = null
     ) : ElasticsearchMigration;
     
     /**

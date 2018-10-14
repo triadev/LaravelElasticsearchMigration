@@ -14,7 +14,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function createOrUpdate(
         string $migration,
-        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT
+        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
+        ?string $error = null
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigration {
         $dbMigration = $this->find($migration);
         
@@ -25,6 +26,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         
         if ($this->isStatusValid($status)) {
             $dbMigration->status = $status;
+            $dbMigration->error = $error;
         }
         
         $dbMigration->saveOrFail();

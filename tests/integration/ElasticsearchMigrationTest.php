@@ -6,6 +6,7 @@ use Elasticsearch\ClientBuilder;
 use Tests\TestCase;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationDatabaseContract;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed;
 
 class ElasticsearchMigrationTest extends TestCase
@@ -184,33 +185,19 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_creates_and_updates_mappings_and_settings_with_database()
     {
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
-            $this->migrationRepository->find('1.0.0')->status
-        );
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $this->migrationRepository->find('1.0.0')->status);
         
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
         
         $this->service->migrate('1.0.0', 'database');
         
-        $this->assertTrue($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
         
-        $mapping = $this->esClient->indices()->getMapping([
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]);
-        
+        $mapping = $this->esClient->indices()->getMapping(['index' => 'phpunit', 'type' => 'phpunit']);
         $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title'));
         $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.description'));
         
-        $settings = $this->esClient->indices()->getSettings([
-            'index' => 'phpunit'
-        ]);
-        
+        $settings = $this->esClient->indices()->getSettings(['index' => 'phpunit']);
         $this->assertEquals('60s', array_get($settings, 'phpunit.settings.index.refresh_interval'));
         $this->assertEquals('custom', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.type'));
         $this->assertEquals('whitespace', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.tokenizer'));
@@ -218,10 +205,14 @@ class ElasticsearchMigrationTest extends TestCase
         $migration = $this->migrationRepository->find('1.0.0');
         
         $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $migration->status
-        );
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $migration->status);
+        
+        $migrationSteps = $migration->migrationSteps();
+        $this->assertEquals(3, $migrationSteps->count());
+        
+        foreach ($migrationSteps->cursor() as $migrationStep) {
+            $this->assertEquals(ElasticsearchMigrationStepContract::ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE, $migrationStep->status);
+        }
     }
     
     /**
@@ -229,21 +220,13 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_deletes_an_index()
     {
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
-    
         $this->service->migrate('1.0.0');
     
-        $this->assertTrue($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
     
         $this->service->migrate('delete_index');
     
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
     }
     
     /**
@@ -251,15 +234,11 @@ class ElasticsearchMigrationTest extends TestCase
      */
     public function it_deletes_an_index_with_database()
     {
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
         
         $this->service->migrate('1.0.0', 'database');
         
-        $this->assertTrue($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
     
         $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('delete_index'));
         $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
@@ -270,9 +249,7 @@ class ElasticsearchMigrationTest extends TestCase
         
         $this->service->migrate('delete_index', 'database');
         
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
     }
     
     /**

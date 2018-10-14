@@ -37,4 +37,12 @@ interface ElasticsearchMigrationDatabaseContract
      * @return array
      */
     public function getMigration(string $migration) : array;
+    
+    /**
+     * Get migration steps
+     *
+     * @param string $migration
+     * @return array
+     */
+    public function getMigrationSteps(string $migration) : array;
 }

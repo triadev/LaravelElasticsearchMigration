@@ -2,19 +2,19 @@
 namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsUpdateByQueryContract;
-use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateByQuery;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepUpdateByQueryContract;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepUpdateByQuery;
 
-class ElasticsearchMigrationsUpdateByQueryTest extends TestCase
+class ElasticsearchMigrationStepUpdateByQueryTest extends TestCase
 {
-    /** @var ElasticsearchMigrationsUpdateByQueryContract */
+    /** @var ElasticsearchMigrationStepUpdateByQueryContract */
     private $repository;
     
     public function setUp()
     {
         parent::setUp();
         
-        $this->repository = app(ElasticsearchMigrationsUpdateByQueryContract::class);
+        $this->repository = app(ElasticsearchMigrationStepUpdateByQueryContract::class);
     }
     
     /**
@@ -27,7 +27,7 @@ class ElasticsearchMigrationsUpdateByQueryTest extends TestCase
         $this->repository->create(1, [], null, null, []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsUpdateByQuery::class,
+            ElasticsearchMigrationStepUpdateByQuery::class,
             $this->repository->find(1)
         );
     }
@@ -52,7 +52,7 @@ class ElasticsearchMigrationsUpdateByQueryTest extends TestCase
         $this->repository->create(1, [], null, null, []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsUpdateByQuery::class,
+            ElasticsearchMigrationStepUpdateByQuery::class,
             $this->repository->find(1)
         );
     }

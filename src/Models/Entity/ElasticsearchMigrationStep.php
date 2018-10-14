@@ -8,15 +8,17 @@ use Illuminate\Database\Eloquent\Model;
  * @property integer $migration_id
  * @property string $type
  * @property string $index
+ * @property integer $status
+ * @property string|null $error
  */
-class ElasticsearchMigrations extends Model
+class ElasticsearchMigrationStep extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'triadev_elasticsearch_migrations';
+    protected $table = 'triadev_elasticsearch_migration_step';
     
     /**
      * Get migration by type
@@ -27,25 +29,25 @@ class ElasticsearchMigrations extends Model
     {
         switch ($this->getAttribute('type')) {
             case 'createIndex':
-                return $this->hasOne(ElasticsearchMigrationsCreateIndex::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepCreateIndex::class, 'migration_step_id');
                 break;
             case 'updateIndex':
-                return $this->hasOne(ElasticsearchMigrationsUpdateIndex::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepUpdateIndex::class, 'migration_step_id');
                 break;
             case 'deleteIndex':
                 return 'deleteIndex';
                 break;
             case 'alias':
-                return $this->hasOne(ElasticsearchMigrationsAlias::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepAlias::class, 'migration_step_id');
                 break;
             case 'deleteByQuery':
-                return $this->hasOne(ElasticsearchMigrationsDeleteByQuery::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepDeleteByQuery::class, 'migration_step_id');
                 break;
             case 'updateByQuery':
-                return $this->hasOne(ElasticsearchMigrationsUpdateByQuery::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepUpdateByQuery::class, 'migration_step_id');
                 break;
             case 'reindex':
-                return $this->hasOne(ElasticsearchMigrationsReindex::class, 'migrations_id');
+                return $this->hasOne(ElasticsearchMigrationStepReindex::class, 'migration_step_id');
                 break;
             default:
                 break;

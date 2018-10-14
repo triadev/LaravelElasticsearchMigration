@@ -17,6 +17,7 @@ class CreateElasticsearchMigrationTable extends Migration
             $table->bigIncrements('id');
             $table->string('migration');
             $table->integer('status');
+            $table->text('error')->nullable();
             $table->timestamps();
         });
     }
