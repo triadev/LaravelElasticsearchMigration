@@ -47,7 +47,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         
         $app['config']->set('triadev-elasticsearch-migration', [
             'host' => 'localhost',
-            'port' => 9200,
+            'port' => env('ELASTICSEARCH_PORT', 9222),
             'scheme' => 'http',
             'user' => '',
             'pass' => '',

@@ -14,6 +14,7 @@ class ElasticsearchMigrationsCreateIndex implements ElasticsearchMigrationsCreat
         ?array $settings = null
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsCreateIndex {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsCreateIndex();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->mappings = json_encode($mappings);
     

@@ -15,6 +15,7 @@ class ElasticsearchMigrationsAlias implements ElasticsearchMigrationsAliasContra
         array $removeIndices = []
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsAlias {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsAlias();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->add = json_encode($add);
         $dbMigration->remove = json_encode($remove);

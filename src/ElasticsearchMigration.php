@@ -71,7 +71,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     public function migrate(string $version, string $source = 'file')
     {
         $migration = $this->migrationRepository->find($version);
-        if ($migration && $migration->getAttribute('status') == 'done') {
+        if ($migration && $migration->status == 'done') {
             throw new MigrationAlreadyDone();
         }
         

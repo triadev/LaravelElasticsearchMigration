@@ -3,6 +3,10 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $migrations_id
+ * @property string $status
+ */
 class ElasticsearchMigrationStatus extends Model
 {
     /**
@@ -11,14 +15,4 @@ class ElasticsearchMigrationStatus extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migration_status';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration',
-        'status'
-    ];
 }

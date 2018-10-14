@@ -3,6 +3,12 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property integer $migrations_id
+ * @property string $add
+ * @property string $remove
+ * @property string $remove_indices
+ */
 class ElasticsearchMigrationsAlias extends Model
 {
     /**
@@ -11,16 +17,4 @@ class ElasticsearchMigrationsAlias extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migrations_alias';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration_id',
-        'add',
-        'remove',
-        'remove_indices'
-    ];
 }

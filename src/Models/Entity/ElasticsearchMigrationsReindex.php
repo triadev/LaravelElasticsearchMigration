@@ -3,6 +3,14 @@ namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property integer $migrations_id
+ * @property string $dest_index
+ * @property bool $refresh_source_index
+ * @property string $global
+ * @property string $source
+ * @property string $dest
+ */
 class ElasticsearchMigrationsReindex extends Model
 {
     /**
@@ -11,18 +19,4 @@ class ElasticsearchMigrationsReindex extends Model
      * @var string
      */
     protected $table = 'triadev_elasticsearch_migrations_reindex';
-    
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'migration_id',
-        'dest_index',
-        'refresh_source_index',
-        'global',
-        'source',
-        'dest'
-    ];
 }

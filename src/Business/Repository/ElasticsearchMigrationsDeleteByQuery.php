@@ -15,6 +15,7 @@ class ElasticsearchMigrationsDeleteByQuery implements ElasticsearchMigrationsDel
         array $options = []
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsDeleteByQuery {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsDeleteByQuery();
+        
         $dbMigration->migrations_id = $migrationsId;
         $dbMigration->query = json_encode($query);
         $dbMigration->type = $type;
