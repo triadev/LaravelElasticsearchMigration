@@ -2,19 +2,19 @@
 namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsDeleteByQueryContract;
-use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsDeleteByQuery;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepAliasContract;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepAlias;
 
-class ElasticsearchMigrationsDeleteByQueryTest extends TestCase
+class ElasticsearchMigrationStepAliasTest extends TestCase
 {
-    /** @var ElasticsearchMigrationsDeleteByQueryContract */
+    /** @var ElasticsearchMigrationStepAliasContract */
     private $repository;
     
     public function setUp()
     {
         parent::setUp();
         
-        $this->repository = app(ElasticsearchMigrationsDeleteByQueryContract::class);
+        $this->repository = app(ElasticsearchMigrationStepAliasContract::class);
     }
     
     /**
@@ -24,10 +24,10 @@ class ElasticsearchMigrationsDeleteByQueryTest extends TestCase
     {
         $this->assertNull($this->repository->find(1));
         
-        $this->repository->create(1, [], null, []);
+        $this->repository->create(1, [], [], []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsDeleteByQuery::class,
+            ElasticsearchMigrationStepAlias::class,
             $this->repository->find(1)
         );
     }
@@ -40,8 +40,8 @@ class ElasticsearchMigrationsDeleteByQueryTest extends TestCase
     {
         $this->assertNull($this->repository->find(1));
     
-        $this->repository->create(1, [], null, []);
-        $this->repository->create(1, [], null, []);
+        $this->repository->create(1, [], [], []);
+        $this->repository->create(1, [], [], []);
     }
     
     /**
@@ -49,10 +49,10 @@ class ElasticsearchMigrationsDeleteByQueryTest extends TestCase
      */
     public function it_finds_a_migration()
     {
-        $this->repository->create(1, [], null, []);
+        $this->repository->create(1, [], [], []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsDeleteByQuery::class,
+            ElasticsearchMigrationStepAlias::class,
             $this->repository->find(1)
         );
     }

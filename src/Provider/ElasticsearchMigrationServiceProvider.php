@@ -45,64 +45,64 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrations::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStep::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsCreateIndexContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepCreateIndexContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsCreateIndex::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepCreateIndex::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsUpdateIndexContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepUpdateIndexContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsUpdateIndex::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepUpdateIndex::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsAliasContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepAliasContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsAlias::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepAlias::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsDeleteByQueryContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepDeleteByQueryContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsDeleteByQuery::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepDeleteByQuery::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsUpdateByQueryContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepUpdateByQueryContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsUpdateByQuery::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepUpdateByQuery::class
                 );
             }
         );
     
         $this->app->bind(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsReindexContract::class,
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepReindexContract::class,
             function () {
                 return app()->make(
-                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationsReindex::class
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepReindex::class
                 );
             }
         );

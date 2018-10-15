@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateElasticsearchMigrationsTable extends Migration
+class CreateElasticsearchMigrationStepTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,13 @@ class CreateElasticsearchMigrationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('triadev_elasticsearch_migrations', function (Blueprint $table) {
+        Schema::create('triadev_elasticsearch_migration_step', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('migration_id');
             $table->string('type');
             $table->string('index');
+            $table->integer('status');
+            $table->text('error')->nullable();
             $table->timestamps();
             
             $table->foreign('migration_id')->references('id')->on('triadev_elasticsearch_migration');
@@ -31,6 +33,6 @@ class CreateElasticsearchMigrationsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('triadev_elasticsearch_migrations');
+        Schema::drop('triadev_elasticsearch_migration_step');
     }
 }

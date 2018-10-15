@@ -6,7 +6,7 @@ use Triadev\EsMigration\Business\Events\MigrationDone;
 use Triadev\EsMigration\Business\Events\MigrationError;
 use Triadev\EsMigration\Business\Events\MigrationRunning;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsContract;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
 
 class ElasticsearchMigrationTest extends TestCase
@@ -14,15 +14,15 @@ class ElasticsearchMigrationTest extends TestCase
     /** @var ElasticsearchMigrationContract */
     private $repository;
     
-    /** @var ElasticsearchMigrationsContract */
-    private $migrationsRepository;
+    /** @var ElasticsearchMigrationStepContract */
+    private $migrationStepRepository;
     
     public function setUp()
     {
         parent::setUp();
         
         $this->repository = app(ElasticsearchMigrationContract::class);
-        $this->migrationsRepository = app(ElasticsearchMigrationsContract::class);
+        $this->migrationStepRepository = app(ElasticsearchMigrationStepContract::class);
     }
     
     /**
@@ -56,8 +56,9 @@ class ElasticsearchMigrationTest extends TestCase
         $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $this->repository->find('1.0.0')->status);
     
         // ERROR
-        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR);
+        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR, 'error');
         $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR, $this->repository->find('1.0.0')->status);
+        $this->assertEquals('error', $this->repository->find('1.0.0')->error);
         
         // RUNNING
         $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_RUNNING);
@@ -114,12 +115,12 @@ class ElasticsearchMigrationTest extends TestCase
             $this->repository->find('1.0.0')
         );
     
-        $this->migrationsRepository->create(1, 'create', 'phpunit');
-        $this->migrationsRepository->create(1, 'update', 'phpunit');
+        $this->migrationStepRepository->create(1, 'create', 'phpunit');
+        $this->migrationStepRepository->create(1, 'update', 'phpunit');
         
         $migration = $this->repository->find('1.0.0');
         
-        $this->assertEquals(2, $migration->migrations()->count());
+        $this->assertEquals(2, $migration->migrationSteps()->count());
     }
     
     /**

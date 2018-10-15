@@ -1,37 +1,37 @@
 <?php
 namespace Triadev\EsMigration\Contract\Repository;
 
-use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsReindex;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepReindex;
 
-interface ElasticsearchMigrationsReindexContract
+interface ElasticsearchMigrationStepReindexContract
 {
     /**
      * Create
      *
-     * @param int $migrationsId
+     * @param int $migrationStepId
      * @param string $destIndex
      * @param bool $refreshSourceIndex
      * @param array $global
      * @param array $source
      * @param array $dest
-     * @return ElasticsearchMigrationsReindex
+     * @return ElasticsearchMigrationStepReindex
      *
      * @throws \Throwable
      */
     public function create(
-        int $migrationsId,
+        int $migrationStepId,
         string $destIndex,
         bool $refreshSourceIndex = false,
         array $global = [],
         array $source = [],
         array $dest = []
-    ) : ElasticsearchMigrationsReindex;
+    ) : ElasticsearchMigrationStepReindex;
     
     /**
      * Find
      *
-     * @param int $migrationsId
-     * @return null|ElasticsearchMigrationsReindex
+     * @param int $migrationStepId
+     * @return null|ElasticsearchMigrationStepReindex
      */
-    public function find(int $migrationsId) : ?ElasticsearchMigrationsReindex;
+    public function find(int $migrationStepId) : ?ElasticsearchMigrationStepReindex;
 }

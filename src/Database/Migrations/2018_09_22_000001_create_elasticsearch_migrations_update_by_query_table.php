@@ -13,16 +13,16 @@ class CreateElasticsearchMigrationsUpdateByQueryTable extends Migration
      */
     public function up()
     {
-        Schema::create('triadev_elasticsearch_migrations_update_by_query', function (Blueprint $table) {
+        Schema::create('triadev_elasticsearch_migration_step_update_by_query', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('migrations_id')->unique();
+            $table->bigInteger('migration_step_id')->unique();
             $table->string('query');
             $table->string('type')->nullable();
             $table->string('script')->nullable();
             $table->string('options');
             $table->timestamps();
             
-            $table->foreign('migrations_id')->references('migration_id')->on('triadev_elasticsearch_migrations');
+            $table->foreign('migration_step_id')->references('migration_id')->on('triadev_elasticsearch_migration_steps');
         });
     }
 
@@ -33,6 +33,6 @@ class CreateElasticsearchMigrationsUpdateByQueryTable extends Migration
      */
     public function down()
     {
-        Schema::drop('triadev_elasticsearch_migrations_update_by_query');
+        Schema::drop('triadev_elasticsearch_migration_step_update_by_query');
     }
 }

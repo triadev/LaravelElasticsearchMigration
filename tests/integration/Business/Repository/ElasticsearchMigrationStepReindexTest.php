@@ -2,19 +2,19 @@
 namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsUpdateIndexContract;
-use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsUpdateIndex;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepReindexContract;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepReindex;
 
-class ElasticsearchMigrationsUpdateIndexTest extends TestCase
+class ElasticsearchMigrationStepReindexTest extends TestCase
 {
-    /** @var ElasticsearchMigrationsUpdateIndexContract */
+    /** @var ElasticsearchMigrationStepReindexContract */
     private $repository;
     
     public function setUp()
     {
         parent::setUp();
         
-        $this->repository = app(ElasticsearchMigrationsUpdateIndexContract::class);
+        $this->repository = app(ElasticsearchMigrationStepReindexContract::class);
     }
     
     /**
@@ -24,10 +24,10 @@ class ElasticsearchMigrationsUpdateIndexTest extends TestCase
     {
         $this->assertNull($this->repository->find(1));
         
-        $this->repository->create(1, [], null, false);
+        $this->repository->create(1, 'destIndex', false, [], [], []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsUpdateIndex::class,
+            ElasticsearchMigrationStepReindex::class,
             $this->repository->find(1)
         );
     }
@@ -39,9 +39,9 @@ class ElasticsearchMigrationsUpdateIndexTest extends TestCase
     public function it_expected_a_sql_unique_exception()
     {
         $this->assertNull($this->repository->find(1));
-        
-        $this->repository->create(1, [], null);
-        $this->repository->create(1, [], null);
+    
+        $this->repository->create(1, 'destIndex', false, [], [], []);
+        $this->repository->create(1, 'destIndex', false, [], [], []);
     }
     
     /**
@@ -49,10 +49,10 @@ class ElasticsearchMigrationsUpdateIndexTest extends TestCase
      */
     public function it_finds_a_migration()
     {
-        $this->repository->create(1, [], null, false);
+        $this->repository->create(1, 'destIndex', false, [], [], []);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsUpdateIndex::class,
+            ElasticsearchMigrationStepReindex::class,
             $this->repository->find(1)
         );
     }

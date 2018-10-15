@@ -231,15 +231,11 @@ class StartMigrationTest extends TestCase
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit,phpunit_1.0.1']));
         
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->migrationRepository->find('1.0.0')->status
-        );
+        $migrationResult = $this->migrationRepository->find('1.0.0');
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $migrationResult->status);
         
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->migrationRepository->find('1.0.1')->status
-        );
+        $migrationResult = $this->migrationRepository->find('1.0.1');
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $migrationResult->status);
     }
     
     /**
@@ -304,15 +300,8 @@ class StartMigrationTest extends TestCase
         ])->assertExitCode(0);
     
         $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit,phpunit_1.0.1']));
-    
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->migrationRepository->find('1.0.0')->status
-        );
         
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->migrationRepository->find('1.0.1')->status
-        );
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->migrationRepository->find('1.0.0')->status);
+        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->migrationRepository->find('1.0.1')->status);
     }
 }

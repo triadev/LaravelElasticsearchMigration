@@ -2,19 +2,19 @@
 namespace Tests\Integration\Business\Repository;
 
 use Tests\TestCase;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationsCreateIndexContract;
-use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationsCreateIndex;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepCreateIndexContract;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepCreateIndex;
 
-class ElasticsearchMigrationsCreateIndexTest extends TestCase
+class ElasticsearchMigrationStepCreateIndexTest extends TestCase
 {
-    /** @var ElasticsearchMigrationsCreateIndexContract */
+    /** @var ElasticsearchMigrationStepCreateIndexContract */
     private $repository;
     
     public function setUp()
     {
         parent::setUp();
         
-        $this->repository = app(ElasticsearchMigrationsCreateIndexContract::class);
+        $this->repository = app(ElasticsearchMigrationStepCreateIndexContract::class);
     }
     
     /**
@@ -27,7 +27,7 @@ class ElasticsearchMigrationsCreateIndexTest extends TestCase
         $this->repository->create(1, [], null);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsCreateIndex::class,
+            ElasticsearchMigrationStepCreateIndex::class,
             $this->repository->find(1)
         );
     }
@@ -52,7 +52,7 @@ class ElasticsearchMigrationsCreateIndexTest extends TestCase
         $this->repository->create(1, [], null);
         
         $this->assertInstanceOf(
-            ElasticsearchMigrationsCreateIndex::class,
+            ElasticsearchMigrationStepCreateIndex::class,
             $this->repository->find(1)
         );
     }

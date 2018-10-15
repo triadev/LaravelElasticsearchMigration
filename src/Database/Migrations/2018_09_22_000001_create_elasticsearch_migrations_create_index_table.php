@@ -13,14 +13,14 @@ class CreateElasticsearchMigrationsCreateIndexTable extends Migration
      */
     public function up()
     {
-        Schema::create('triadev_elasticsearch_migrations_create_index', function (Blueprint $table) {
+        Schema::create('triadev_elasticsearch_migration_step_create_index', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('migrations_id')->unique();
+            $table->bigInteger('migration_step_id')->unique();
             $table->string('mappings');
             $table->string('settings')->nullable();
             $table->timestamps();
             
-            $table->foreign('migrations_id')->references('migration_id')->on('triadev_elasticsearch_migrations');
+            $table->foreign('migration_step_id')->references('migration_id')->on('triadev_elasticsearch_migration_steps');
         });
     }
 
@@ -31,6 +31,6 @@ class CreateElasticsearchMigrationsCreateIndexTable extends Migration
      */
     public function down()
     {
-        Schema::drop('triadev_elasticsearch_migrations_create_index');
+        Schema::drop('triadev_elasticsearch_migration_step_create_index');
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property integer $id
  * @property string $migration
  * @property string $status
+ * @property string|null $error
  */
 class ElasticsearchMigration extends Model
 {
@@ -19,12 +20,12 @@ class ElasticsearchMigration extends Model
     protected $table = 'triadev_elasticsearch_migration';
     
     /**
-     * Get migrations
+     * Get migration steps
      *
      * @return HasMany
      */
-    public function migrations() : HasMany
+    public function migrationSteps() : HasMany
     {
-        return $this->hasMany(ElasticsearchMigrations::class, 'migration_id');
+        return $this->hasMany(ElasticsearchMigrationStep::class, 'migration_id');
     }
 }
