@@ -30,8 +30,9 @@ class ElasticsearchMigrationStepCreateIndex implements ElasticsearchMigrationSte
     /**
      * @inheritdoc
      */
-    public function find(int $migrationStepId): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepCreateIndex
-    {
+    public function find(
+        int $migrationStepId
+    ): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepCreateIndex {
         return \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepCreateIndex::where(
             'migration_step_id',
             $migrationStepId

@@ -31,8 +31,9 @@ class ElasticsearchMigrationStepUpdateByQuery implements ElasticsearchMigrationS
     /**
      * F@inheritdoc
      */
-    public function find(int $migrationStepId): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepUpdateByQuery
-    {
+    public function find(
+        int $migrationStepId
+    ): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepUpdateByQuery {
         return \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStepUpdateByQuery::where(
             'migration_step_id',
             $migrationStepId
