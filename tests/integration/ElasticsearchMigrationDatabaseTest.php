@@ -34,7 +34,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
     private $elasticsearchMigrationRepository;
     
     /** @var ElasticsearchMigrationStepContract */
-    private $elasticsearchMigrationsRepository;
+    private $elasticsearchMigrationStepRepository;
     
     public function setUp()
     {
@@ -43,7 +43,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $this->service = app(ElasticsearchMigrationDatabaseContract::class);
     
         $this->elasticsearchMigrationRepository = app(ElasticsearchMigrationContract::class);
-        $this->elasticsearchMigrationsRepository = app(ElasticsearchMigrationStepContract::class);
+        $this->elasticsearchMigrationStepRepository = app(ElasticsearchMigrationStepContract::class);
     }
     
     /**
@@ -64,7 +64,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
     public function it_adds_migration()
     {
         $this->assertFalse($this->service->addMigration('1.0.0', 'default', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
     
         $this->assertTrue($this->service->createMigration('1.0.0'));
     
@@ -82,7 +82,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         
         $this->assertEquals(
             1,
-            $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id')
+            $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id')
         );
     }
     
@@ -95,7 +95,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepCreateIndexContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'createIndex', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
@@ -104,7 +104,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
             'mappings' => []
         ]));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
         
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepCreateIndex::class, $migration);
@@ -120,14 +120,14 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepUpdateIndexContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'updateIndex', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
         
         $this->assertTrue($this->service->addMigration('1.0.0', 'updateIndex', 'phpunit', []));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
     
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepUpdateIndex::class, $migration);
@@ -140,13 +140,13 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
     public function it_adds_delete_index_migration()
     {
         $this->assertFalse($this->service->addMigration('1.0.0', 'deleteIndex', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
         
         $this->assertTrue($this->service->addMigration('1.0.0', 'deleteIndex', 'phpunit', []));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
     }
     
     /**
@@ -158,14 +158,14 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepAliasContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'alias', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
         
         $this->assertTrue($this->service->addMigration('1.0.0', 'alias', 'phpunit', []));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
         
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepAlias::class, $migration);
@@ -181,7 +181,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepDeleteByQueryContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'deleteByQuery', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
@@ -190,7 +190,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
             'query' => []
         ]));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
         
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepDeleteByQuery::class, $migration);
@@ -206,7 +206,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepUpdateByQueryContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'updateByQuery', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
@@ -215,7 +215,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
             'query' => []
         ]));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
         
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepUpdateByQuery::class, $migration);
@@ -231,7 +231,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
         $repository = app(ElasticsearchMigrationStepReindexContract::class);
         
         $this->assertFalse($this->service->addMigration('1.0.0', 'reindex', 'phpunit'));
-        $this->assertNull($this->elasticsearchMigrationsRepository->find(1));
+        $this->assertNull($this->elasticsearchMigrationStepRepository->find(1));
         $this->assertNull($repository->find(1));
         
         $this->assertTrue($this->service->createMigration('1.0.0'));
@@ -240,7 +240,7 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
             'destIndex' => 'phpunit'
         ]));
         
-        $this->assertEquals(1, $this->elasticsearchMigrationsRepository->find(1)->getAttribute('id'));
+        $this->assertEquals(1, $this->elasticsearchMigrationStepRepository->find(1)->getAttribute('id'));
         
         $migration = $repository->find(1);
         $this->assertInstanceOf(ElasticsearchMigrationStepReindex::class, $migration);
@@ -297,6 +297,30 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
     /**
      * @test
      */
+    public function it_gets_migration_without_status_done_steps()
+    {
+        $this->assertEquals([], $this->service->getMigration('1.0.0'));
+        
+        $this->assertTrue($this->service->createMigration('1.0.0'));
+        $this->assertFalse($this->service->addMigration('1.0.0', 'default', 'phpunit'));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'updateIndex', 'phpunit', []));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'deleteIndex', 'phpunit', []));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'alias', 'phpunit', []));
+        
+        $this->assertCount(3, $this->service->getMigration('1.0.0'));
+        
+        $this->elasticsearchMigrationStepRepository->update(
+            1,
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            null
+        );
+    
+        $this->assertCount(2, $this->service->getMigration('1.0.0'));
+    }
+    
+    /**
+     * @test
+     */
     public function it_gets_migration_steps()
     {
         $this->assertEquals([], $this->service->getMigration('1.0.0'));
@@ -343,5 +367,29 @@ class ElasticsearchMigrationDatabaseTest extends TestCase
                 ]
             ));
         }
+    }
+    
+    /**
+     * @test
+     */
+    public function it_gets_migration_steps_without_status_done_steps()
+    {
+        $this->assertEquals([], $this->service->getMigration('1.0.0'));
+        
+        $this->assertTrue($this->service->createMigration('1.0.0'));
+        $this->assertFalse($this->service->addMigration('1.0.0', 'default', 'phpunit'));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'updateIndex', 'phpunit', []));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'deleteIndex', 'phpunit', []));
+        $this->assertTrue($this->service->addMigration('1.0.0', 'alias', 'phpunit', []));
+        
+        $this->assertCount(3, $this->service->getMigrationSteps('1.0.0'));
+    
+        $this->elasticsearchMigrationStepRepository->update(
+            1,
+            ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
+            null
+        );
+    
+        $this->assertCount(2, $this->service->getMigrationSteps('1.0.0'));
     }
 }

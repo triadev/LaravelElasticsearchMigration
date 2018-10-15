@@ -116,20 +116,24 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
         $migrations = [];
         
         if ($dbMigration = $this->elasticsearchMigrationRepository->find($migration)) {
-            foreach ($dbMigration->migrationSteps()->getResults() as $dbMigration) {
-                /** @var ElasticsearchMigrationStep $dbMigration */
-                $migrationByType = $dbMigration->migrationByType();
-                if ($migrationByType) {
+            foreach ($dbMigration->migrationSteps()->getResults() as $dbMigrationStep) {
+                /** @var ElasticsearchMigrationStep $dbMigrationStep */
+                
+                if ($dbMigrationStep->status == ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE) {
+                    continue;
+                }
+                
+                if ($migrationByType = $dbMigrationStep->migrationByType()) {
                     $migrationByType = is_object($migrationByType) ? $migrationByType->first() : $migrationByType;
                     
-                    $index = $dbMigration->index;
+                    $index = $dbMigrationStep->index;
                     
-                    switch ($dbMigration->type) {
+                    switch ($dbMigrationStep->type) {
                         case self::MIGRATION_TYPE_CREATE_INDEX:
                             if ($migrationByType instanceof ElasticsearchMigrationStepCreateIndex) {
                                 $settings = $migrationByType->settings;
                                 
-                                $migrations[$dbMigration->id] = MigrationBuilder::createIndex(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::createIndex(
                                     $index,
                                     json_decode($migrationByType->mappings, true),
                                     $settings != null ? json_decode($settings, true) : null
@@ -141,7 +145,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                                 $mappings = $migrationByType->mappings;
                                 $settings = $migrationByType->settings;
         
-                                $migrations[$dbMigration->id] = MigrationBuilder::updateIndex(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::updateIndex(
                                     $index,
                                     $mappings != null ? json_decode($mappings, true) : null,
                                     $settings != null ? json_decode($settings, true) : null,
@@ -150,7 +154,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                             }
                             break;
                         case self::MIGRATION_TYPE_DELETE_INDEX:
-                            $migrations[$dbMigration->id] = MigrationBuilder::deleteIndex($index);
+                            $migrations[$dbMigrationStep->id] = MigrationBuilder::deleteIndex($index);
                             break;
                         case self::MIGRATION_TYPE_ALIAS:
                             if ($migrationByType instanceof ElasticsearchMigrationStepAlias) {
@@ -158,7 +162,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                                 $remove = $migrationByType->remove;
                                 $removeIndices = $migrationByType->remove_indices;
                                 
-                                $migrations[$dbMigration->id] = MigrationBuilder::alias(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::alias(
                                     $index,
                                     $add != null ? json_decode($add, true) : null,
                                     $remove != null ? json_decode($remove, true) : null,
@@ -168,7 +172,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                             break;
                         case self::MIGRATION_TYPE_DELETE_BY_QUERY:
                             if ($migrationByType instanceof ElasticsearchMigrationStepDeleteByQuery) {
-                                $migrations[$dbMigration->id] = MigrationBuilder::deleteByQuery(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::deleteByQuery(
                                     $index,
                                     json_decode($migrationByType->query, true),
                                     $migrationByType->type,
@@ -180,7 +184,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                             if ($migrationByType instanceof ElasticsearchMigrationStepUpdateByQuery) {
                                 $script = $migrationByType->script;
                                 
-                                $migrations[$dbMigration->id] = MigrationBuilder::updateByQuery(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::updateByQuery(
                                     $index,
                                     json_decode($migrationByType->query, true),
                                     $migrationByType->type,
@@ -191,7 +195,7 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
                             break;
                         case self::MIGRATION_TYPE_REINDEX:
                             if ($migrationByType instanceof ElasticsearchMigrationStepReindex) {
-                                $migrations[$dbMigration->id] = MigrationBuilder::reindex(
+                                $migrations[$dbMigrationStep->id] = MigrationBuilder::reindex(
                                     $index,
                                     $migrationByType->dest_index,
                                     (bool)$migrationByType->refresh_source_index,
@@ -226,6 +230,11 @@ class ElasticsearchMigrationDatabase implements ElasticsearchMigrationDatabaseCo
             
             foreach ($dbMigrationSteps->cursor() as $dbMigrationStep) {
                 /** @var ElasticsearchMigrationStep $dbMigrationStep */
+    
+                if ($dbMigrationStep->status == ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE) {
+                    continue;
+                }
+                
                 $migrationSteps[] = array_except($dbMigrationStep->toArray(), [
                     'id',
                     'migration_id'
