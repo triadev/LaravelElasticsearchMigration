@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Models\Entity;
 
 use Illuminate\Database\Eloquent\Model;
+use Triadev\EsMigration\Contract\ElasticsearchMigrationDatabaseContract;
 
 /**
  * @property integer $id
@@ -28,25 +29,25 @@ class ElasticsearchMigrationStep extends Model
     public function migrationByType()
     {
         switch ($this->getAttribute('type')) {
-            case 'createIndex':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_CREATE_INDEX:
                 return $this->hasOne(ElasticsearchMigrationStepCreateIndex::class, 'migration_step_id');
                 break;
-            case 'updateIndex':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_UPDATE_INDEX:
                 return $this->hasOne(ElasticsearchMigrationStepUpdateIndex::class, 'migration_step_id');
                 break;
-            case 'deleteIndex':
-                return 'deleteIndex';
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_DELETE_INDEX:
+                return ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_DELETE_INDEX;
                 break;
-            case 'alias':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_ALIAS:
                 return $this->hasOne(ElasticsearchMigrationStepAlias::class, 'migration_step_id');
                 break;
-            case 'deleteByQuery':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_DELETE_BY_QUERY:
                 return $this->hasOne(ElasticsearchMigrationStepDeleteByQuery::class, 'migration_step_id');
                 break;
-            case 'updateByQuery':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_UPDATE_BY_QUERY:
                 return $this->hasOne(ElasticsearchMigrationStepUpdateByQuery::class, 'migration_step_id');
                 break;
-            case 'reindex':
+            case ElasticsearchMigrationDatabaseContract::MIGRATION_TYPE_REINDEX:
                 return $this->hasOne(ElasticsearchMigrationStepReindex::class, 'migration_step_id');
                 break;
             default:
