@@ -2,739 +2,337 @@
 namespace Tests\Integration;
 
 use Elasticsearch\Client;
-use Elasticsearch\ClientBuilder;
 use Tests\TestCase;
+use Triadev\EsMigration\Business\Events\MigrationDone;
+use Triadev\EsMigration\Business\Events\MigrationRunning;
+use Triadev\EsMigration\Business\Events\MigrationStepDone;
+use Triadev\EsMigration\Business\Events\MigrationStepRunning;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
+use Triadev\EsMigration\Business\Mapper\MigrationTypes;
+use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
-use Triadev\EsMigration\Contract\ElasticsearchMigrationDatabaseContract;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
-use Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as ElasticsearchMigrationRepository;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract as ElasticsearchMigrationStepRepository;
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
 
 class ElasticsearchMigrationTest extends TestCase
 {
     /** @var ElasticsearchMigrationContract */
-    private $service;
+    private $migrationService;
     
-    /** @var Client */
-    private $esClient;
-    
-    /** @var \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract */
+    /** @var ElasticsearchMigrationRepository */
     private $migrationRepository;
     
-    /** @var ElasticsearchMigrationDatabaseContract */
-    private $elasticsearchMigrationDatabaseService;
+    /** @var ElasticsearchMigrationStepRepository */
+    private $migrationStepRepository;
     
+    /** @var ElasticsearchClients */
+    private $elasticsearchClients;
+    
+    /**
+     * SetUp
+     */
     public function setUp()
     {
         parent::setUp();
         
-        $this->service = app(ElasticsearchMigrationContract::class);
-        $this->elasticsearchMigrationDatabaseService = app(ElasticsearchMigrationDatabaseContract::class);
-        $this->esClient = $this->buildElasticsearchClient();
+        $this->migrationService = app(ElasticsearchMigrationContract::class);
+        $this->migrationRepository = app(ElasticsearchMigrationRepository::class);
+        $this->migrationStepRepository = app(ElasticsearchMigrationStepRepository::class);
         
-        if ($this->esClient->indices()->exists(['index' => 'phpunit'])) {
-            $this->esClient->indices()->delete([
-                'index' => 'phpunit'
-            ]);
-        }
-    
-        if ($this->esClient->indices()->exists(['index' => 'phpunit_1.0.1'])) {
-            $this->esClient->indices()->delete([
-                'index' => 'phpunit_1.0.1'
-            ]);
-        }
-        
-        $this->migrationRepository = app(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class
-        );
-        
-        $this->buildDatabaseTestData();
-    }
-    
-    private function buildElasticsearchClient() : Client
-    {
-        $config = config('triadev-elasticsearch-migration');
-        
-        $clientBuilder = ClientBuilder::create();
-        $clientBuilder->setHosts([
-            [
-                'host' => $config['host'],
-                'port' => $config['port'],
-                'scheme' => $config['scheme'],
-                'user' => $config['user'],
-                'pass' => $config['pass']
-            ]
-        ]);
-        
-        return $clientBuilder->build();
-    }
-    
-    private function buildDatabaseTestData()
-    {
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('1.0.0'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            '1.0.0',
-            'createIndex',
+        $this->elasticsearchClients = new ElasticsearchClients();
+        $this->elasticsearchClients->add(
             'phpunit',
-            [
-                'mappings' => [
-                    'phpunit' => [
-                        'dynamic' => 'strict',
-                        'properties' => [
-                            'title' => [
-                                'type' => 'text'
-                            ],
-                            'count' => [
-                                'type' => 'integer'
-                            ]
-                        ]
-                    ]
-                ],
-                'settings' => [
-                    'refresh_interval' => "30s"
-                ]
-            ]
-        ));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            '1.0.0',
-            'updateIndex',
-            'phpunit',
-            [
-                'mappings' => [
-                    'phpunit' => [
-                        'properties' => [
-                            'description' => [
-                                'type' => 'text'
-                            ]
-                        ]
-                    ]
-                ],
-                'settings' => [
-                    'index' => [
-                        'refresh_interval' => "60s"
-                    ]
-                ]
-            ]
-        ));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            '1.0.0',
-            'updateIndex',
-            'phpunit',
-            [
-                'settings' => [
-                    'analysis' => [
-                        'analyzer' => [
-                            'content' => [
-                                'type' => 'custom',
-                                'tokenizer' => 'whitespace'
-                            ]
-                        ]
-                    ]
-                ],
-                'closeIndex' => true
-            ]
-        ));
-    }
-    
-    /**
-     * @test
-     */
-    public function it_creates_and_updates_mappings_and_settings()
-    {
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
-            $this->migrationRepository->find('1.0.0')->status
+            'localhost',
+            env('ELASTICSEARCH_PORT'),
+            'http',
+            '',
+            ''
         );
-        
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
-        
-        $this->service->migrate('1.0.0');
     
-        $this->assertTrue($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
-        
-        $mapping = $this->esClient->indices()->getMapping([
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]);
-        
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title'));
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.description'));
-        
-        $settings = $this->esClient->indices()->getSettings([
-            'index' => 'phpunit'
-        ]);
-        
-        $this->assertEquals('60s', array_get($settings, 'phpunit.settings.index.refresh_interval'));
-        $this->assertEquals('custom', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.type'));
-        $this->assertEquals('whitespace', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.tokenizer'));
-        
-        $migration = $this->migrationRepository->find('1.0.0');
-    
-        $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $migration->status
-        );
-    }
-    
-    /**
-     * @test
-     */
-    public function it_creates_and_updates_mappings_and_settings_with_database()
-    {
-        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $this->migrationRepository->find('1.0.0')->status);
-        
-        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
-        
-        $this->service->migrate('1.0.0', 'database');
-        
-        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
-        
-        $mapping = $this->esClient->indices()->getMapping(['index' => 'phpunit', 'type' => 'phpunit']);
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.title'));
-        $this->assertTrue(array_has($mapping, 'phpunit.mappings.phpunit.properties.description'));
-        
-        $settings = $this->esClient->indices()->getSettings(['index' => 'phpunit']);
-        $this->assertEquals('60s', array_get($settings, 'phpunit.settings.index.refresh_interval'));
-        $this->assertEquals('custom', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.type'));
-        $this->assertEquals('whitespace', array_get($settings, 'phpunit.settings.index.analysis.analyzer.content.tokenizer'));
-        
-        $migration = $this->migrationRepository->find('1.0.0');
-        
-        $this->assertEquals('1.0.0', $migration->migration);
-        $this->assertEquals(\Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $migration->status);
-        
-        $migrationSteps = $migration->migrationSteps();
-        $this->assertEquals(3, $migrationSteps->count());
-        
-        foreach ($migrationSteps->cursor() as $migrationStep) {
-            $this->assertEquals(ElasticsearchMigrationStepContract::ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE, $migrationStep->status);
+        /** @var Client $esClient */
+        $esClient = $this->elasticsearchClients->get('phpunit');
+        if ($esClient->indices()->exists(['index' => 'index'])) {
+            $esClient->indices()->delete(['index' => 'index']);
         }
     }
     
     /**
      * @test
      */
-    public function it_deletes_an_index()
+    public function it_creates_a_migration()
     {
-        $this->service->migrate('1.0.0');
-    
-        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
-    
-        $this->service->migrate('delete_index');
-    
-        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
+        $this->assertNull($this->migrationRepository->find('phpunit'));
+        
+        $this->assertTrue(
+            $this->migrationService->createMigration(
+                'phpunit'
+            )
+        );
+        
+        $this->assertInstanceOf(
+            ElasticsearchMigration::class,
+            $this->migrationRepository->find('phpunit')
+        );
     }
     
     /**
      * @test
      */
-    public function it_deletes_an_index_with_database()
+    public function it_adds_migration_steps()
     {
-        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
         
-        $this->service->migrate('1.0.0', 'database');
+        $this->assertEquals(
+            0,
+            $this->migrationRepository->find('phpunit')->migrationSteps()->count()
+        );
         
-        $this->assertTrue($this->esClient->indices()->exists(['index' => 'phpunit']));
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('delete_index'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'delete_index',
-            'deleteIndex',
-            'phpunit'
-        ));
+        $this->addMigrationSteps();
         
-        $this->service->migrate('delete_index', 'database');
-        
-        $this->assertFalse($this->esClient->indices()->exists(['index' => 'phpunit']));
+        $this->assertEquals(7, $this->migrationRepository->find('phpunit')->migrationSteps()->count());
     }
     
     /**
      * @test
      */
-    public function it_adds_and_deletes_an_alias()
+    public function it_returns_false_if_migration_step_type_is_invalid()
     {
-        $this->service->migrate('1.0.0');
-        
-        $this->assertFalse($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
-        
-        $this->service->migrate('add_alias');
-    
-        $this->assertTrue($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
-    
-        $this->service->migrate('delete_alias');
-    
-        $this->assertFalse($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
-    }
-    
-    /**
-     * @test
-     */
-    public function it_adds_and_deletes_an_alias_with_database()
-    {
-        $this->service->migrate('1.0.0', 'database');
-        
-        $this->assertFalse($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('add_alias'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'add_alias',
-            'alias',
+        $this->assertFalse($this->migrationService->addMigrationStep(
             'phpunit',
+            'invalid',
             [
-                'add' => [
-                    'alias'
-                ]
+                'index' => 'index'
             ]
         ));
-        
-        $this->service->migrate('add_alias', 'database');
-        
-        $this->assertTrue($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
+    }
     
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('delete_alias'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'delete_alias',
-            'alias',
+    /**
+     * @test
+     */
+    public function it_returns_false_if_migration_not_exist()
+    {
+        $this->assertFalse($this->migrationService->addMigrationStep(
             'phpunit',
+            MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
             [
-                'remove' => [
-                    'alias'
-                ]
+                'index' => 'index'
             ]
         ));
-        
-        $this->service->migrate('delete_alias', 'database');
-        
-        $this->assertFalse($this->esClient->indices()->existsAlias([
-            'name' => 'alias',
-            'index' => 'phpunit'
-        ]));
-    }
-    
-    /**
-     * @test
-     * @expectedException \Triadev\EsMigration\Exception\IndexNotExist
-     */
-    public function it_throws_an_exception_if_reindex_dest_index_not_exist()
-    {
-        $this->service->migrate('1.0.0');
-        $this->service->migrate('reindex');
     }
     
     /**
      * @test
      */
-    public function it_reindex_an_index()
+    public function it_gets_migration_status()
     {
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
+        $this->assertEquals([
+            'migration' => 'phpunit',
+            'status' => null,
+            'steps' => []
+        ], $this->migrationService->getMigrationStatus('phpunit'));
     
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
         
-        $this->service->migrate('1.0.0');
+        $this->addMigrationSteps();
         
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title'
-            ]
-        ]);
-    
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-    
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
+        $result = $this->migrationService->getMigrationStatus('phpunit');
         
-        $this->service->migrate('1.0.1');
-        $this->service->migrate('reindex');
+        $this->assertEquals('phpunit', $result['migration']);
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_WAIT, $result['status']);
         
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
+        $this->assertCount(7, $result['steps']);
+        
+        foreach ($result['steps'] as $step) {
+            $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $step['status']);
+            $this->assertEquals(null, $step['error']);
+        }
     }
     
     /**
      * @test
      */
-    public function it_reindex_an_index_with_database()
+    public function it_starts_migration()
     {
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-        
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
-        
-        $this->service->migrate('1.0.0', 'database');
-        
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title'
-            ]
+        $this->expectsEvents([
+            MigrationRunning::class,
+            MigrationDone::class,
+            MigrationStepRunning::class,
+            MigrationStepDone::class
         ]);
         
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-        
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('1.0.1'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            '1.0.1',
-            'createIndex',
-            'phpunit_1.0.1',
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
             [
-                'mappings' => [
-                    'phpunit' => [
-                        'dynamic' => 'strict',
-                        'properties' => [
-                            'title' => [
-                                'type' => 'text'
-                            ],
-                            'count' => [
-                                'type' => 'integer'
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
                             ]
                         ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
                     ]
-                ],
-                'settings' => [
-                    'refresh_interval' => "30s"
                 ]
             ]
         ));
-        
-        $this->service->migrate('1.0.1', 'database');
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('reindex'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'reindex',
-            'reindex',
+        $this->assertTrue($this->migrationService->addMigrationStep(
             'phpunit',
+            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
             [
-                'destIndex' => 'phpunit_1.0.1',
-                'refreshSourceIndex' => true
+                'index' => 'index'
             ]
         ));
         
-        $this->service->migrate('reindex', 'database');
+        $result = $this->migrationService->getMigrationStatus('phpunit');
+        $this->assertEquals('phpunit', $result['migration']);
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_WAIT, $result['status']);
         
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit_1.0.1',
-            'type' => 'phpunit'
-        ]));
-    }
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
     
-    /**
-     * @test
-     */
-    public function it_deletes_documents_by_query()
-    {
-        $this->service->migrate('1.0.0');
-    
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title'
-            ]
-        ]);
-    
-        $this->esClient->indices()->refresh([
-            'index' => 'phpunit'
-        ]);
-    
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
+        $result = $this->migrationService->getMigrationStatus('phpunit');
         
-        $this->service->migrate('delete_by_query');
-    
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-    }
-    
-    /**
-     * @test
-     */
-    public function it_deletes_documents_by_query_with_database()
-    {
-        $this->service->migrate('1.0.0', 'database');
+        $this->assertEquals('phpunit', $result['migration']);
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_DONE, $result['status']);
         
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title'
-            ]
-        ]);
-        
-        $this->esClient->indices()->refresh([
-            'index' => 'phpunit'
-        ]);
-        
-        $this->assertTrue($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('delete_by_query'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'delete_by_query',
-            'deleteByQuery',
-            'phpunit',
-            [
-                'query' => [
-                    'match' => [
-                        'title' => 'Title'
-                    ]
-                ],
-                'type' => 'phpunit',
-                'options' => [
-                    'conflicts' => 'proceed'
-                ]
-            ]
-        ));
-        
-        $this->service->migrate('delete_by_query', 'database');
-        
-        $this->assertFalse($this->esClient->exists([
-            'id' => 'reindex_test',
-            'index' => 'phpunit',
-            'type' => 'phpunit'
-        ]));
-    }
-    
-    /**
-     * @test
-     */
-    public function it_updates_documents_by_query()
-    {
-        $this->service->migrate('1.0.0');
-        
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title',
-                'count' => 1
-            ]
-        ]);
-        
-        $this->esClient->indices()->refresh([
-            'index' => 'phpunit'
-        ]);
-        
-        $this->assertEquals(
-            1,
-            $this->esClient->get([
-                'id' => 'reindex_test',
-                'index' => 'phpunit',
-                'type' => 'phpunit'
-            ])['_source']['count']
-        );
-        
-        $this->service->migrate('update_by_query');
-    
-        $this->assertEquals(
-            2,
-            $this->esClient->get([
-                'id' => 'reindex_test',
-                'index' => 'phpunit',
-                'type' => 'phpunit'
-            ])['_source']['count']
-        );
-    }
-    
-    /**
-     * @test
-     */
-    public function it_updates_documents_by_query_with_database()
-    {
-        $this->service->migrate('1.0.0', 'database');
-        
-        $this->esClient->index([
-            'index' => 'phpunit',
-            'type' => 'phpunit',
-            'id' => 'reindex_test',
-            'body' => [
-                'title' => 'Title',
-                'count' => 1
-            ]
-        ]);
-        
-        $this->esClient->indices()->refresh([
-            'index' => 'phpunit'
-        ]);
-        
-        $this->assertEquals(
-            1,
-            $this->esClient->get([
-                'id' => 'reindex_test',
-                'index' => 'phpunit',
-                'type' => 'phpunit'
-            ])['_source']['count']
-        );
-    
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->createMigration('update_by_query'));
-        $this->assertTrue($this->elasticsearchMigrationDatabaseService->addMigration(
-            'update_by_query',
-            'updateByQuery',
-            'phpunit',
-            [
-                'query' => [
-                    'match' => [
-                        'title' => 'Title'
-                    ]
-                ],
-                'type' => 'phpunit',
-                'script' => [
-                    'source' => 'ctx._source.count++',
-                    'lang' => 'painless'
-                ],
-                'options' => [
-                    'conflicts' => 'proceed'
-                ]
-            ]
-        ));
-        
-        $this->service->migrate('update_by_query', 'database');
-        
-        $this->assertEquals(
-            2,
-            $this->esClient->get([
-                'id' => 'reindex_test',
-                'index' => 'phpunit',
-                'type' => 'phpunit'
-            ])['_source']['count']
-        );
+        foreach ($result['steps'] as $step) {
+            $this->assertEquals(MigrationStatus::MIGRATION_STATUS_DONE, $step['status']);
+            $this->assertEquals(null, $step['error']);
+        }
     }
     
     /**
      * @test
      * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyDone
      */
-    public function it_throws_an_exception_if_migration_already_done()
+    public function it_throws_an_exception_if_a_migration_already_done()
     {
-        $this->migrationRepository->createOrUpdate(
-            '1.0.0',
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE
-        );
-    
-        $this->service->migrate('1.0.0');
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ]
+        ));
+        
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
     }
     
-    /**
-     * @test
-     */
-    public function it_updates_migration_status_from_error_to_done()
+    private function addMigrationSteps()
     {
-        $this->migrationRepository->createOrUpdate(
-            '1.0.0',
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR
-        );
-        
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR,
-            $this->migrationRepository->find('1.0.0')->status
-        );
-        
-        $this->service->migrate('1.0.0');
+        // Create index
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+               'body' => [
+                   'mappings' => [
+                       'phpunit' => [
+                           'dynamic' => 'strict',
+                           'properties' => [
+                               'title' => [
+                                   'type' => 'text'
+                               ],
+                               'count' => [
+                                   'type' => 'integer'
+                               ]
+                           ]
+                       ]
+                   ],
+                   'settings' => [
+                       'refresh_interval' => "30s"
+                   ]
+               ]
+            ]
+        ));
     
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            $this->migrationRepository->find('1.0.0')->status
-        );
-    }
+        // Update index
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
+            [
+                'index' => 'index'
+            ]
+        ));
     
-    /**
-     * @test
-     * @expectedException \Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed
-     */
-    public function it_throws_exception_if_field_migration_not_allowed()
-    {
-        $this->assertEquals(
-            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
-            $this->migrationRepository->find('1.0.0')->status
-        );
+        // Delete index
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
+            [
+                'index' => 'index'
+            ]
+        ));
     
-        $this->assertFalse($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        // Alias
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_PUT_ALIAS,
+            [
+                'index' => 'index'
+            ]
+        ));
     
-        $this->service->migrate('1.0.0');
+        // Delete by query
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY,
+            [
+                'index' => 'index',
+                'query' => []
+            ]
+        ));
     
-        $this->assertTrue($this->esClient->indices()->exists([
-            'index' => 'phpunit'
-        ]));
+        // Update by query
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
+            [
+                'index' => 'index',
+                'query' => []
+            ]
+        ));
     
-        try {
-            $this->service->migrate('field_datatype_migration_failed');
-        } catch (FieldDatatypeMigrationFailed $e) {
-            $this->assertCount(2, json_decode($e->getMessage()));
-        
-            throw $e;
-        }
+        // Reindex
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_REINDEX,
+            [
+                'index' => 'index',
+                'destIndex' => 'phpunit'
+            ]
+        ));
     }
 }

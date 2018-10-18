@@ -3,32 +3,54 @@ namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
 
-class DeleteByQuery
+class DeleteByQuery extends AbstractMigration
 {
     /**
-     * Migrate
+     * Get validation rules
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return [
+            'index' => 'required|string'
+        ];
+    }
+    
+    /**
+     * Pre check
      *
      * @param Client $esClient
-     * @param \Triadev\EsMigration\Models\Migrations\DeleteByQuery $migration
+     * @param array $params
+     *
+     * @throws \Exception
      */
-    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\DeleteByQuery $migration)
+    public function preCheck(Client $esClient, array $params)
     {
-        $params = [
-            'index' => $migration->getIndex(),
-            'body' => [
-                'query' => $migration->getQuery()
-            ]
-        ];
-        
-        if ($migration->getType()) {
-            $params['type'] = $migration->getType();
-        }
+        // TODO: Implement preCheck() method.
+    }
     
-        $params = array_merge(
-            $params,
-            $migration->getOptions()
-        );
-    
+    /**
+     * Start migration
+     *
+     * @param Client $esClient
+     * @param array $params
+     */
+    public function startMigration(Client $esClient, array $params)
+    {
         $esClient->deleteByQuery($params);
+    }
+    
+    /**
+     * Post check
+     *
+     * @param Client $esClient
+     * @param array $params
+     *
+     * @throws \Exception
+     */
+    public function postCheck(Client $esClient, array $params)
+    {
+        // TODO: Implement postCheck() method.
     }
 }

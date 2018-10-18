@@ -17,9 +17,9 @@ class CreateElasticsearchMigrationStepTable extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('migration_id');
             $table->string('type');
-            $table->string('index');
             $table->integer('status');
             $table->text('error')->nullable();
+            $table->text('params');
             $table->timestamps();
             
             $table->foreign('migration_id')->references('id')->on('triadev_elasticsearch_migration');

@@ -5,6 +5,7 @@ use Tests\TestCase;
 use Triadev\EsMigration\Business\Events\MigrationDone;
 use Triadev\EsMigration\Business\Events\MigrationError;
 use Triadev\EsMigration\Business\Events\MigrationRunning;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
@@ -53,24 +54,24 @@ class ElasticsearchMigrationTest extends TestCase
         
         // WAIT
         $this->repository->createOrUpdate('1.0.0');
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $this->repository->find('1.0.0')->status);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $this->repository->find('1.0.0')->status);
     
         // ERROR
-        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR, 'error');
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_ERROR, $this->repository->find('1.0.0')->status);
+        $this->repository->createOrUpdate('1.0.0', MigrationStatus::MIGRATION_STATUS_ERROR, 'error');
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_ERROR, $this->repository->find('1.0.0')->status);
         $this->assertEquals('error', $this->repository->find('1.0.0')->error);
         
         // RUNNING
-        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_RUNNING);
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_RUNNING, $this->repository->find('1.0.0')->status);
+        $this->repository->createOrUpdate('1.0.0', MigrationStatus::MIGRATION_STATUS_RUNNING);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_RUNNING, $this->repository->find('1.0.0')->status);
         
         // DONE
-        $this->repository->createOrUpdate('1.0.0', ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE);
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
+        $this->repository->createOrUpdate('1.0.0', MigrationStatus::MIGRATION_STATUS_DONE);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
     
         // DONE => invalid status id
         $this->repository->createOrUpdate('1.0.0', 999);
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_DONE, $this->repository->find('1.0.0')->status);
     }
     
     /**
@@ -115,8 +116,13 @@ class ElasticsearchMigrationTest extends TestCase
             $this->repository->find('1.0.0')
         );
     
-        $this->migrationStepRepository->create(1, 'create', 'phpunit');
-        $this->migrationStepRepository->create(1, 'update', 'phpunit');
+        $this->migrationStepRepository->create(1, 'create', [
+            'index' => 'phpunit'
+        ]);
+        
+        $this->migrationStepRepository->create(1, 'update', [
+            'index' => 'phpunit'
+        ]);
         
         $migration = $this->repository->find('1.0.0');
         
@@ -136,9 +142,9 @@ class ElasticsearchMigrationTest extends TestCase
         $migrations = $this->repository->all(['id', 'migration', 'status']);
         
         $this->assertEquals('1.0.0', $migrations[0]->migration);
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $migrations[0]->status);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $migrations[0]->status);
         
         $this->assertEquals('1.0.1', $migrations[1]->migration);
-        $this->assertEquals(ElasticsearchMigrationContract::ELASTICSEARCH_MIGRATION_STATUS_WAIT, $migrations[1]->status);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $migrations[1]->status);
     }
 }
