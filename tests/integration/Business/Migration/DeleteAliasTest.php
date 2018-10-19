@@ -95,7 +95,8 @@ class DeleteAliasTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [
-                'index' => 'index'
+                'index' => 'index',
+                'name' => 'Alias'
             ],
             new \DateTime(),
             new \DateTime()
