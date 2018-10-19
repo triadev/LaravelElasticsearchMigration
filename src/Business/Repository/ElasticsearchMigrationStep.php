@@ -4,6 +4,7 @@ namespace Triadev\EsMigration\Business\Repository;
 use Triadev\EsMigration\Business\Events\MigrationStepDone;
 use Triadev\EsMigration\Business\Events\MigrationStepError;
 use Triadev\EsMigration\Business\Events\MigrationStepRunning;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Exception\MigrationsNotExist;
 
@@ -15,14 +16,14 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
     public function create(
         int $migrationId,
         string $type,
-        string $index
+        array $params = []
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep();
         
         $dbMigration->migration_id = $migrationId;
         $dbMigration->type = $type;
-        $dbMigration->index = $index;
-        $dbMigration->status = self::ELASTICSEARCH_MIGRATION_STEP_STATUS_WAIT;
+        $dbMigration->status = MigrationStatus::MIGRATION_STATUS_WAIT;
+        $dbMigration->params = json_encode($params);
     
         $dbMigration->saveOrFail();
     
@@ -42,7 +43,7 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
             throw new MigrationsNotExist();
         }
         
-        if ($this->isStatusValid($status)) {
+        if ((new MigrationStatus())->isMigrationStatusValid($status)) {
             $entity->status = $status;
             $entity->error = $error;
         }
@@ -63,32 +64,16 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
             ->first();
     }
     
-    private function isStatusValid(int $status) : bool
-    {
-        $valid = [
-            self::ELASTICSEARCH_MIGRATION_STEP_STATUS_WAIT,
-            self::ELASTICSEARCH_MIGRATION_STEP_STATUS_RUNNING,
-            self::ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE,
-            self::ELASTICSEARCH_MIGRATION_STEP_STATUS_ERROR
-        ];
-        
-        if (in_array($status, $valid)) {
-            return true;
-        }
-        
-        return false;
-    }
-    
     private function dispatchStatus(\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep $migration)
     {
         switch ($migration->status) {
-            case self::ELASTICSEARCH_MIGRATION_STEP_STATUS_RUNNING:
+            case MigrationStatus::MIGRATION_STATUS_RUNNING:
                 $event = new MigrationStepRunning($migration);
                 break;
-            case self::ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE:
+            case MigrationStatus::MIGRATION_STATUS_DONE:
                 $event = new MigrationStepDone($migration);
                 break;
-            case self::ELASTICSEARCH_MIGRATION_STEP_STATUS_ERROR:
+            case MigrationStatus::MIGRATION_STATUS_ERROR:
                 $event = new MigrationStepError($migration);
                 break;
             default:

@@ -1,199 +1,168 @@
 <?php
 namespace Triadev\EsMigration;
 
-use Elasticsearch\Client;
-use Elasticsearch\ClientBuilder;
-use Triadev\EsMigration\Business\Migration\Alias;
+use Triadev\EsMigration\Business\Migration\AbstractMigration;
 use Triadev\EsMigration\Business\Migration\CreateIndex;
+use Triadev\EsMigration\Business\Migration\DeleteAlias;
 use Triadev\EsMigration\Business\Migration\DeleteByQuery;
 use Triadev\EsMigration\Business\Migration\DeleteIndex;
+use Triadev\EsMigration\Business\Migration\PutAlias;
 use Triadev\EsMigration\Business\Migration\Reindex;
 use Triadev\EsMigration\Business\Migration\UpdateByQuery;
-use Triadev\EsMigration\Business\Migration\UpdateIndex;
+use Triadev\EsMigration\Business\Migration\UpdateIndexMapping;
+use Triadev\EsMigration\Business\Migration\UpdateIndexSetting;
+use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
+use Triadev\EsMigration\Business\Service\MigrationSteps;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
-use Triadev\EsMigration\Contract\ElasticsearchMigrationDatabaseContract;
-use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
+use Triadev\EsMigration\Business\Mapper\MigrationTypes;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration as ElasticsearchMigrationEntity;
-
-use Triadev\EsMigration\Models\Migrations\CreateIndex as CreateIndexModel;
-use Triadev\EsMigration\Models\Migrations\UpdateIndex as UpdateIndexModel;
-use Triadev\EsMigration\Models\Migrations\DeleteIndex as DeleteIndexModel;
-use Triadev\EsMigration\Models\Migrations\Alias as AliasModel;
-use Triadev\EsMigration\Models\Migrations\DeleteByQuery as DeleteByQueryModel;
-use Triadev\EsMigration\Models\Migrations\UpdateByQuery as UpdateByQueryModel;
-use Triadev\EsMigration\Models\Migrations\Reindex as ReindexModel;
-
+use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as EsMigrationRepositoryInterface;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract as EsMigrationStepRepositoryInterface;
+use Triadev\EsMigration\Models\MigrationStep;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
 {
-    /** @var Client */
-    private $esClient;
-    
-    /** @var string|null */
-    private $filePathMigrations;
-    
     /** @var EsMigrationRepositoryInterface */
     private $migrationRepository;
     
     /** @var EsMigrationStepRepositoryInterface */
     private $migrationStepRepository;
     
+    /** @var MigrationSteps */
+    private $migrationStepService;
+    
     /**
      * ElasticsearchMigration constructor.
      */
     public function __construct()
     {
-        $this->esClient = $this->buildElasticsearchClient();
-        
-        $this->filePathMigrations = config('triadev-elasticsearch-migration.migration.filePath');
-        
         $this->migrationRepository = app(EsMigrationRepositoryInterface::class);
         $this->migrationStepRepository = app(EsMigrationStepRepositoryInterface::class);
-    }
-    
-    private function buildElasticsearchClient() : Client
-    {
-        $config = config('triadev-elasticsearch-migration');
-        
-        $clientBuilder = ClientBuilder::create();
-        $clientBuilder->setHosts([
-            [
-                'host' => $config['host'],
-                'port' => $config['port'],
-                'scheme' => $config['scheme'],
-                'user' => $config['user'],
-                'pass' => $config['pass']
-            ]
-        ]);
-        
-        return $clientBuilder->build();
+        $this->migrationStepService = app(MigrationSteps::class);
     }
     
     /**
      * @inheritdoc
      */
-    public function migrate(string $version, string $source = 'file')
+    public function createMigration(string $migration): bool
     {
-        $this->checkIfMigrationAlreadyRunning($version);
+        try {
+            $this->migrationRepository->createOrUpdate($migration);
+        } catch (\Throwable $e) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function addMigrationStep(string $migration, string $type, array $params = []) : bool
+    {
+        if (!(new MigrationTypes())->isMigrationTypeValid($type)) {
+            return false;
+        }
         
         try {
-            $updateMigrationStepStatus = $source == self::MIGRATION_SOURCE_TYPE_DATABASE ? true : false;
+            if ($migration = $this->migrationRepository->find($migration)) {
+                $this->migrationStepRepository->create($migration->id, $type, $params);
+                return true;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function getMigrationStatus(string $migration) : array
+    {
+        $migrationSteps = [];
+        
+        $status = null;
+    
+        if ($migrationEntity = $this->migrationRepository->find($migration)) {
+            $status = $migrationEntity->status;
             
-            if (!empty($migrations = $this->getMigrations($version, $source))) {
-                foreach ($migrations as $migrationStepId => $migration) {
-                    $this->startMigrationStep(
-                        $migration,
-                        $updateMigrationStepStatus ? $migrationStepId : null
-                    );
+            foreach ($migrationEntity->migrationSteps()->cursor() as $migrationStep) {
+                /** @var ElasticsearchMigrationStep $migrationStep */
+                $migrationSteps[] = array_except($migrationStep->toArray(), [
+                    'id',
+                    'migration_id'
+                ]);
+            }
+        }
+    
+        return [
+            'migration' => $migration,
+            'status' => $status,
+            'steps' => $migrationSteps
+        ];
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function startMigration(string $migration, ElasticsearchClients $elasticsearchClients)
+    {
+        $this->checkIfMigrationAlreadyRunning($migration);
+        
+        try {
+            $migrationSteps = $this->migrationStepService->getMigrationSteps($migration, true);
+            
+            if (!empty($migrationSteps)) {
+                $this->migrationRepository->createOrUpdate($migration, MigrationStatus::MIGRATION_STATUS_RUNNING);
+                
+                foreach ($migrationSteps as $migrationStep) {
+                    $this->startMigrationStep($migrationStep, $elasticsearchClients);
                 }
     
-                $this->migrationRepository->createOrUpdate(
-                    $version,
-                    EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_DONE
-                );
+                $this->migrationRepository->createOrUpdate($migration, MigrationStatus::MIGRATION_STATUS_DONE);
             }
         } catch (\Exception $e) {
             $this->migrationRepository->createOrUpdate(
-                $version,
-                EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_ERROR
+                $migration,
+                MigrationStatus::MIGRATION_STATUS_ERROR,
+                $e->getMessage()
             );
-            
+    
             throw $e;
         }
     }
     
-    /**
-     * @param string $version
-     * @throws MigrationAlreadyDone
-     */
-    private function checkIfMigrationAlreadyRunning(string $version)
+    private function checkIfMigrationAlreadyRunning(string $migration)
     {
-        $migration = $this->migrationRepository->find($version);
+        $migrationEntity = $this->migrationRepository->find($migration);
         
-        if ($migration instanceof ElasticsearchMigrationEntity &&
-            $migration->status == EsMigrationRepositoryInterface::ELASTICSEARCH_MIGRATION_STATUS_DONE) {
+        if ($migrationEntity instanceof ElasticsearchMigrationEntity &&
+            $migrationEntity->status == MigrationStatus::MIGRATION_STATUS_DONE) {
             throw new MigrationAlreadyDone();
         }
     }
     
-    /**
-     * @param string $version
-     * @param string $source
-     * @return array
-     */
-    private function getMigrations(string $version, string $source) : array
-    {
-        if ($source == self::MIGRATION_SOURCE_TYPE_FILE) {
-            return  require sprintf("%s/%s/migrations.php", $this->filePathMigrations, $version);
-        } elseif ($source == self::MIGRATION_SOURCE_TYPE_DATABASE) {
-            /** @var ElasticsearchMigrationDatabaseContract $elasticsearchDatabaseService */
-            $elasticsearchDatabaseService = app(ElasticsearchMigrationDatabaseContract::class);
-            return $elasticsearchDatabaseService->getMigration($version);
-        }
-        
-        return [];
-    }
-    
-    /**
-     * @param $migration
-     * @param int|null $migrationStepId
-     * @throws Exception\MigrationsNotExist
-     * @throws \Throwable
-     */
-    private function startMigrationStep($migration, ?int $migrationStepId = null)
-    {
+    private function startMigrationStep(
+        MigrationStep $migrationStep,
+        ElasticsearchClients $elasticsearchClients
+    ) {
         try {
-            if ($migrationStepId) {
-                $this->migrationStepRepository->update(
-                    $migrationStepId,
-                    ElasticsearchMigrationStepContract::ELASTICSEARCH_MIGRATION_STEP_STATUS_RUNNING
-                );
-            }
+            $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_RUNNING);
             
-            switch (get_class($migration)) {
-                case CreateIndexModel::class:
-                    (new CreateIndex())->migrate($this->esClient, $migration);
-                    break;
-                case UpdateIndexModel::class:
-                    (new UpdateIndex())->migrate($this->esClient, $migration);
-                    break;
-                case DeleteIndexModel::class:
-                    (new DeleteIndex())->migrate($this->esClient, $migration);
-                    break;
-                case AliasModel::class:
-                    (new Alias())->migrate($this->esClient, $migration);
-                    break;
-                case DeleteByQueryModel::class:
-                    (new DeleteByQuery())->migrate($this->esClient, $migration);
-                    break;
-                case UpdateByQueryModel::class:
-                    (new UpdateByQuery())->migrate($this->esClient, $migration);
-                    break;
-                case ReindexModel::class:
-                    (new Reindex())->migrate($this->esClient, $migration);
-                    break;
-                default:
-                    break;
+            foreach ($elasticsearchClients->all() as $elasticsearchClient) {
+                if ($migrationClass = (new MigrationTypes())->mapTypeToClass($migrationStep->getType())) {
+                    $migrationClass->migrate($elasticsearchClient, $migrationStep);
+                }
             }
+    
+            $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_DONE);
         } catch (\Exception $e) {
-            if ($migrationStepId) {
-                $this->migrationStepRepository->update(
-                    $migrationStepId,
-                    ElasticsearchMigrationStepContract::ELASTICSEARCH_MIGRATION_STEP_STATUS_ERROR
-                );
-            } else {
-                throw $e;
-            }
-        }
-        
-        if ($migrationStepId) {
-            $this->migrationStepRepository->update(
-                $migrationStepId,
-                ElasticsearchMigrationStepContract::ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE
-            );
+            $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_ERROR);
         }
     }
 }

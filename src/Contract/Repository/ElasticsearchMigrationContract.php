@@ -2,15 +2,11 @@
 namespace Triadev\EsMigration\Contract\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration;
 
 interface ElasticsearchMigrationContract
 {
-    const ELASTICSEARCH_MIGRATION_STATUS_WAIT = 0;
-    const ELASTICSEARCH_MIGRATION_STATUS_RUNNING = 1;
-    const ELASTICSEARCH_MIGRATION_STATUS_DONE = 2;
-    const ELASTICSEARCH_MIGRATION_STATUS_ERROR = 3;
-    
     /**
      * Create or update
      *
@@ -23,7 +19,7 @@ interface ElasticsearchMigrationContract
      */
     public function createOrUpdate(
         string $migration,
-        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
+        int $status = MigrationStatus::MIGRATION_STATUS_WAIT,
         ?string $error = null
     ) : ElasticsearchMigration;
     

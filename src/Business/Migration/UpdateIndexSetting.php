@@ -3,7 +3,7 @@ namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
 
-class DeleteIndex extends AbstractMigration
+class UpdateIndexSetting extends AbstractMigration
 {
     /**
      * Get validation rules
@@ -13,7 +13,8 @@ class DeleteIndex extends AbstractMigration
     public function getValidationRules(): array
     {
         return [
-            'index' => 'required|string'
+            'index' => 'required|string',
+            'body' => 'required|array'
         ];
     }
     
@@ -28,8 +29,7 @@ class DeleteIndex extends AbstractMigration
     public function preCheck(Client $esClient, array $params)
     {
         $index = $params['index'];
-    
-        if (!$esClient->indices()->exists(['index' => $params['index']])) {
+        if (!$esClient->indices()->exists(['index' => $index])) {
             throw new \Exception(sprintf("Index not exist: %s", $index));
         }
     }
@@ -42,7 +42,7 @@ class DeleteIndex extends AbstractMigration
      */
     public function startMigration(Client $esClient, array $params)
     {
-        $esClient->indices()->delete($params);
+        $esClient->indices()->putSettings($params);
     }
     
     /**
@@ -55,10 +55,6 @@ class DeleteIndex extends AbstractMigration
      */
     public function postCheck(Client $esClient, array $params)
     {
-        $index = $params['index'];
-    
-        if ($esClient->indices()->exists(['index' => $params['index']])) {
-            throw new \Exception(sprintf("Index exist: %s", $index));
-        }
+        // TODO: Implement postCheck() method.
     }
 }

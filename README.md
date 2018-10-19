@@ -41,41 +41,6 @@ Elasticsearch migration for laravel.
 The package is registered through the package discovery of laravel and Composer.
 >https://laravel.com/docs/5.6/packages
 
-## Configuration
-| Key        | ENV        | Value           | Description  |
-|:-------------:|-------------:|:-------------:|:-----:|
-| host | ELASTICSEARCH_HOST | STRING | Host |
-| port | ELASTICSEARCH_PORT | INTEGER | Default: 9200 |
-| scheme | ELASTICSEARCH_SCHEME | STRING | https or http |
-| user | ELASTICSEARCH_USER | STRING | Username |
-| pass | ELASTICSEARCH_PASS | STRING | Password |
-| migration.filePath | --- | STRING | File path for migration scripts |
-
-## Usage
-
-### Build migration
->Triadev\EsMigration\Business\Factory\MigrationBuilder::TYPE()
-
-- createIndex
-- updateIndex
-- deleteIndex
-- alias
-- reindex
-- deleteByQuery
-- updateByQuery
-
-### Commands
-
-#### Start migration
-Orchestra migrations
->php artisan triadev:elasticsearch:migrate:start VERSIONS
-
-Example:
->php artisan triadev:elasticsearch:migrate:start migration1,migration2,migration3
-
-#### Show migrations
->php artisan triadev:elasticsearch:migration:show
-
 ### Events
 [Documentation: Laravel Events](https://laravel.com/docs/5.7/events)
 

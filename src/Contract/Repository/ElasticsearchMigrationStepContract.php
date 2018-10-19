@@ -6,17 +6,12 @@ use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 
 interface ElasticsearchMigrationStepContract
 {
-    const ELASTICSEARCH_MIGRATION_STEP_STATUS_WAIT = 0;
-    const ELASTICSEARCH_MIGRATION_STEP_STATUS_RUNNING = 1;
-    const ELASTICSEARCH_MIGRATION_STEP_STATUS_DONE = 2;
-    const ELASTICSEARCH_MIGRATION_STEP_STATUS_ERROR = 3;
-    
     /**
      * Create
      *
      * @param int $migrationId
      * @param string $type
-     * @param string $index
+     * @param array $params
      * @return ElasticsearchMigrationStep
      *
      * @throws \Throwable
@@ -24,7 +19,7 @@ interface ElasticsearchMigrationStepContract
     public function create(
         int $migrationId,
         string $type,
-        string $index
+        array $params = []
     ) : ElasticsearchMigrationStep;
     
     /**

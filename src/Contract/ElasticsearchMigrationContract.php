@@ -1,23 +1,55 @@
 <?php
 namespace Triadev\EsMigration\Contract;
 
-use Triadev\EsMigration\Exception\FieldDatatypeMigrationFailed;
+use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 
 interface ElasticsearchMigrationContract
 {
-    const MIGRATION_SOURCE_TYPE_FILE = 'file';
-    const MIGRATION_SOURCE_TYPE_DATABASE = 'database';
+    /**
+     * Create migration
+     *
+     * @param string $migration
+     * @return bool
+     */
+    public function createMigration(string $migration) : bool;
     
     /**
-     * Migrate
+     * Add migration step
      *
-     * @param string $version
-     * @param string $source
+     * @param string $migration
+     * @param string $type
+     * @param array $params
+     * @return bool
+     */
+    public function addMigrationStep(string $migration, string $type, array $params = []) : bool;
+    
+    /**
+     * Get migration status
+     *
+     * @param string $migration
+     * @return array [
+     *      'migration' => STRING,
+     *      'status' => STRING,
+     *      'steps' => [
+     *          'type' => STRING,
+     *          'status' => INTEGER,
+     *          'error' => STRING|NULL,
+     *          'created_at' => DATETIME,
+     *          'updated_at' => DATETIME
+     *      ]
+     * ]
+     */
+    public function getMigrationStatus(string $migration) : array;
+    
+    /**
+     * Start migration
+     *
+     * @param string $migration
+     * @param ElasticsearchClients $elasticsearchClients
      *
      * @throws MigrationAlreadyDone
-     * @throws FieldDatatypeMigrationFailed
      * @throws \Throwable
      */
-    public function migrate(string $version, string $source = self::MIGRATION_SOURCE_TYPE_FILE);
+    public function startMigration(string $migration, ElasticsearchClients $elasticsearchClients);
 }

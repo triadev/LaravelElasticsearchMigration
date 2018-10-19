@@ -2,45 +2,64 @@
 namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
-use Triadev\EsMigration\Exception\IndexNotExist;
 
-class Reindex
+class Reindex extends AbstractMigration
 {
     /**
-     * Migrate
+     * Get validation rules
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return [
+            'body' => 'required|array',
+            'body.source.index' => 'required|string',
+            'body.dest.index' => 'required|string'
+        ];
+    }
+    
+    /**
+     * Pre check
      *
      * @param Client $esClient
-     * @param \Triadev\EsMigration\Models\Migrations\Reindex $migration
+     * @param array $params
      *
-     * @throws IndexNotExist
+     * @throws \Exception
      */
-    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\Reindex $migration)
+    public function preCheck(Client $esClient, array $params)
     {
-        if (!$esClient->indices()->exists(['index' => $migration->getDestIndex()])) {
-            throw new IndexNotExist();
-        }
-    
-        if ($migration->isRefreshSourceIndex()) {
-            $esClient->indices()->refresh([
-                'index' => $migration->getIndex()
-            ]);
-        }
-    
-        $body = [
-            'source' => [
-                'index' => $migration->getIndex()
-            ],
-            'dest' => [
-                'index' => $migration->getDestIndex()
-            ]
-        ];
-    
-        $body = array_merge($body, $migration->getGlobal());
-        $body['source'] = array_merge($body['source'], $migration->getSource());
-        $body['dest'] = array_merge($body['dest'], $migration->getDest());
-    
-        $esClient->reindex([
-            'body' => $body
+        $indices = implode(',', [
+            array_get($params, 'body.source.index'),
+            array_get($params, 'body.dest.index')
         ]);
+        
+        if (!$esClient->indices()->exists(['index' => $indices])) {
+            throw new \Exception(sprintf("Index not exist: %s", $indices));
+        }
+    }
+    
+    /**
+     * Start migration
+     *
+     * @param Client $esClient
+     * @param array $params
+     */
+    public function startMigration(Client $esClient, array $params)
+    {
+        $esClient->reindex($params);
+    }
+    
+    /**
+     * Post check
+     *
+     * @param Client $esClient
+     * @param array $params
+     *
+     * @throws \Exception
+     */
+    public function postCheck(Client $esClient, array $params)
+    {
+        // TODO: Implement postCheck() method.
     }
 }

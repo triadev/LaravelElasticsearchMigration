@@ -3,27 +3,65 @@ namespace Triadev\EsMigration\Business\Migration;
 
 use Elasticsearch\Client;
 
-class CreateIndex
+class CreateIndex extends AbstractMigration
 {
     /**
-     * Migrate
+     * Get validation rules
+     *
+     * @return array
+     */
+    public function getValidationRules() : array
+    {
+        return [
+            'index' => 'required|string',
+            'body' => 'required|array',
+            'body.mappings' => 'array',
+            'body.settings' => 'array'
+        ];
+    }
+    
+    /**
+     * Pre check
      *
      * @param Client $esClient
-     * @param \Triadev\EsMigration\Models\Migrations\CreateIndex $migration
+     * @param array $params
+     *
+     * @throws \Exception
      */
-    public function migrate(Client $esClient, \Triadev\EsMigration\Models\Migrations\CreateIndex $migration)
+    public function preCheck(Client $esClient, array $params)
     {
-        $body = [
-            'mappings' => $migration->getMappings()
-        ];
+        $index = array_get($params, 'index');
+        
+        if ($esClient->indices()->exists(['index' => $index])) {
+            throw new \Exception(sprintf("Index already exist: %s", $index));
+        };
+    }
     
-        if ($migration->getSettings()) {
-            $body['settings'] = $migration->getSettings();
-        }
+    /**
+     * Start migration
+     *
+     * @param Client $esClient
+     * @param array $params
+     */
+    public function startMigration(Client $esClient, array $params)
+    {
+        $esClient->indices()->create($params);
+    }
     
-        $esClient->indices()->create([
-            'index' => $migration->getIndex(),
-            'body' => $body
-        ]);
+    /**
+     * Post check
+     *
+     * @param Client $esClient
+     * @param array $params
+     *
+     * @throws \Exception
+     */
+    public function postCheck(Client $esClient, array $params)
+    {
+        $index = array_get($params, 'index');
+    
+        if (!$esClient->indices()->exists(['index' => $index])) {
+            throw new \Exception(sprintf("Index not exist: %s", $index));
+        };
     }
 }

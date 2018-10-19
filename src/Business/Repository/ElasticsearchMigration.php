@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Triadev\EsMigration\Business\Events\MigrationDone;
 use Triadev\EsMigration\Business\Events\MigrationError;
 use Triadev\EsMigration\Business\Events\MigrationRunning;
+use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -14,7 +15,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function createOrUpdate(
         string $migration,
-        int $status = self::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
+        int $status = MigrationStatus::MIGRATION_STATUS_WAIT,
         ?string $error = null
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigration {
         $dbMigration = $this->find($migration);
@@ -24,7 +25,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             $dbMigration->migration = $migration;
         }
         
-        if ($this->isStatusValid($status)) {
+        if ((new MigrationStatus())->isMigrationStatusValid($status)) {
             $dbMigration->status = $status;
             $dbMigration->error = $error;
         }
@@ -64,32 +65,16 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::all($columns);
     }
     
-    private function isStatusValid(int $status) : bool
-    {
-        $valid = [
-            self::ELASTICSEARCH_MIGRATION_STATUS_WAIT,
-            self::ELASTICSEARCH_MIGRATION_STATUS_RUNNING,
-            self::ELASTICSEARCH_MIGRATION_STATUS_DONE,
-            self::ELASTICSEARCH_MIGRATION_STATUS_ERROR
-        ];
-        
-        if (in_array($status, $valid)) {
-            return true;
-        }
-        
-        return false;
-    }
-    
     private function dispatchStatus(\Triadev\EsMigration\Models\Entity\ElasticsearchMigration $migration)
     {
         switch ($migration->status) {
-            case self::ELASTICSEARCH_MIGRATION_STATUS_RUNNING:
+            case MigrationStatus::MIGRATION_STATUS_RUNNING:
                 $event = new MigrationRunning($migration);
                 break;
-            case self::ELASTICSEARCH_MIGRATION_STATUS_DONE:
+            case MigrationStatus::MIGRATION_STATUS_DONE:
                 $event = new MigrationDone($migration);
                 break;
-            case self::ELASTICSEARCH_MIGRATION_STATUS_ERROR:
+            case MigrationStatus::MIGRATION_STATUS_ERROR:
                 $event = new MigrationError($migration);
                 break;
             default:
