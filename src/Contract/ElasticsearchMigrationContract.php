@@ -21,13 +21,15 @@ interface ElasticsearchMigrationContract
      * @param string $type
      * @param array $params
      * @param int $priority
+     * @param bool $stopOnFailure
      * @return bool
      */
     public function addMigrationStep(
         string $migration,
         string $type,
         array $params = [],
-        int $priority = 1
+        int $priority = 1,
+        bool $stopOnFailure = true
     ) : bool;
     
     /**
@@ -37,10 +39,14 @@ interface ElasticsearchMigrationContract
      * @return array [
      *      'migration' => STRING,
      *      'status' => STRING,
+     *      'error' => STRING|NULL,
      *      'steps' => [
      *          'type' => STRING,
      *          'status' => INTEGER,
      *          'error' => STRING|NULL,
+     *          'params' => ARRAY,
+     *          'priority' => INTEGER,
+     *          'stop_on_failure' => BOOLEAN,
      *          'created_at' => DATETIME,
      *          'updated_at' => DATETIME
      *      ]

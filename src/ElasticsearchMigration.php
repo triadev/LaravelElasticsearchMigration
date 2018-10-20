@@ -55,7 +55,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         string $migration,
         string $type,
         array $params = [],
-        int $priority = 1
+        int $priority = 1,
+        bool $stopOnFailure = true
     ) : bool {
         if (!(new MigrationTypes())->isMigrationTypeValid($type)) {
             return false;
@@ -67,7 +68,8 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                     $migration->id,
                     $type,
                     $params,
-                    $priority
+                    $priority,
+                    $stopOnFailure
                 );
                 
                 return true;
@@ -87,22 +89,34 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $migrationSteps = [];
         
         $status = null;
+        $error = null;
     
         if ($migrationEntity = $this->migrationRepository->find($migration)) {
             $status = $migrationEntity->status;
+            $error = $migrationEntity->error;
             
             foreach ($migrationEntity->migrationSteps()->cursor() as $migrationStep) {
                 /** @var ElasticsearchMigrationStep $migrationStep */
-                $migrationSteps[] = array_except($migrationStep->toArray(), [
+                $migrationStepData = array_except($migrationStep->toArray(), [
                     'id',
                     'migration_id'
                 ]);
+                
+                $migrationStepData['status'] = (int)$migrationStepData['status'];
+                $migrationStepData['params'] = json_decode($migrationStepData['params'], true);
+                $migrationStepData['priority'] = (int)$migrationStepData['priority'];
+                $migrationStepData['stop_on_failure'] = (bool)$migrationStepData['stop_on_failure'];
+                $migrationStepData['created_at'] = new \DateTime($migrationStepData['created_at']);
+                $migrationStepData['updated_at'] = new \DateTime($migrationStepData['updated_at']);
+                
+                $migrationSteps[] = $migrationStepData;
             }
         }
     
         return [
             'migration' => $migration,
-            'status' => $status,
+            'status' => (int)$status,
+            'error' => $error,
             'steps' => $migrationSteps
         ];
     }
@@ -112,14 +126,14 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function startMigration(string $migration, ElasticsearchClients $elasticsearchClients)
     {
-        $this->checkIfMigrationAlreadyRunning($migration);
+        $this->checkIfMigrationAlreadyDone($migration);
         
         try {
             $migrationSteps = $this->migrationStepService->getMigrationSteps($migration, true);
-            
+    
             if (!empty($migrationSteps)) {
                 $this->migrationRepository->createOrUpdate($migration, MigrationStatus::MIGRATION_STATUS_RUNNING);
-                
+    
                 foreach ($migrationSteps as $migrationStep) {
                     $this->startMigrationStep($migrationStep, $elasticsearchClients);
                 }
@@ -132,12 +146,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 MigrationStatus::MIGRATION_STATUS_ERROR,
                 $e->getMessage()
             );
-    
-            throw $e;
         }
     }
     
-    private function checkIfMigrationAlreadyRunning(string $migration)
+    private function checkIfMigrationAlreadyDone(string $migration)
     {
         $migrationEntity = $this->migrationRepository->find($migration);
         
@@ -162,7 +174,15 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     
             $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_DONE);
         } catch (\Exception $e) {
-            $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_ERROR);
+            $this->migrationStepRepository->update(
+                $migrationStep->getId(),
+                MigrationStatus::MIGRATION_STATUS_ERROR,
+                $e->getMessage()
+            );
+            
+            if ($migrationStep->isStopOnFailure()) {
+                throw $e;
+            }
         }
     }
 }

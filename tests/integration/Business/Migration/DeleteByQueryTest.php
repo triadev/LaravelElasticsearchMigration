@@ -59,6 +59,8 @@ class DeleteByQueryTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -78,6 +80,8 @@ class DeleteByQueryTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             $this->getValidPayload(),
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -106,6 +110,8 @@ class DeleteByQueryTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             $this->getValidPayload(),
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));

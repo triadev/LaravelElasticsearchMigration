@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $error
  * @property string $params
  * @property integer $priority
+ * @property bool $stop_on_failure
  * @property string $created_at
  * @property string $updated_at
  */

@@ -16,7 +16,9 @@ class CreateElasticsearchMigrationTable extends Migration
         Schema::create('triadev_elasticsearch_migration', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('migration');
-            $table->integer('status');
+            $table->integer('status')->default(
+                \Triadev\EsMigration\Business\Mapper\MigrationStatus::MIGRATION_STATUS_WAIT
+            );
             $table->text('error')->nullable();
             $table->timestamps();
         });

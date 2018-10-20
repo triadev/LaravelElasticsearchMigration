@@ -13,6 +13,7 @@ interface ElasticsearchMigrationStepContract
      * @param string $type
      * @param array $params
      * @param int $priority
+     * @param bool $stopOnFailure
      * @return ElasticsearchMigrationStep
      *
      * @throws \Throwable
@@ -21,7 +22,8 @@ interface ElasticsearchMigrationStepContract
         int $migrationId,
         string $type,
         array $params = [],
-        int $priority = 1
+        int $priority = 1,
+        bool $stopOnFailure = true
     ) : ElasticsearchMigrationStep;
     
     /**
@@ -31,6 +33,7 @@ interface ElasticsearchMigrationStepContract
      * @param int $status
      * @param string|null $error
      * @param int|null $priority
+     * @param bool|null $stopOnFailure
      * @return ElasticsearchMigrationStep
      *
      * @throws MigrationsNotExist
@@ -40,7 +43,8 @@ interface ElasticsearchMigrationStepContract
         int $migrationStepId,
         int $status,
         ?string $error = null,
-        ?int $priority = null
+        ?int $priority = null,
+        ?bool $stopOnFailure = null
     ) : ElasticsearchMigrationStep;
     
     /**

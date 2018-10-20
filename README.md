@@ -61,6 +61,9 @@ Namespace: Triadev\EsMigration\Business\Events
 | MigrationStepDone | Migration step is done |
 
 ## Roadmap
+- stop migration
+- restart migration
+- restart migration step
 - create/delete templates
 - shrink index
 - split index

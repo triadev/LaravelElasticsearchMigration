@@ -40,6 +40,8 @@ class ReindexTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -66,6 +68,8 @@ class ReindexTest extends TestCase
                     ]
                 ]
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -106,6 +110,8 @@ class ReindexTest extends TestCase
                     ]
                 ]
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
