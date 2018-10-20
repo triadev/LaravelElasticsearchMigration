@@ -30,18 +30,18 @@ class ElasticsearchMigrationStepTest extends TestCase
         
         $this->repository->create(2, 'createIndex', [
             'index' => 'phpunit'
-        ]);
-        
-        $this->repository->create(2, 'createIndex', [
-            'index' => 'phpunit'
-        ]);
+        ], 2);
         
         $this->assertInstanceOf(
             ElasticsearchMigrationStep::class,
             $this->repository->find(1)
         );
         
-        $this->assertEquals(2, ElasticsearchMigrationStep::where('migration_id', '=', 2)->count());
+        $this->assertEquals(1, ElasticsearchMigrationStep::where('migration_id', '=', 2)->count());
+        
+        $migrationStep = $this->repository->find(1);
+        $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $migrationStep->status);
+        $this->assertEquals(2, $migrationStep->priority);
     }
     
     /**
@@ -62,6 +62,10 @@ class ElasticsearchMigrationStepTest extends TestCase
         ]);
         $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $this->repository->find(1)->status);
     
+        // Priority
+        $this->repository->update(1, MigrationStatus::MIGRATION_STATUS_WAIT, null, 2);
+        $this->assertEquals(2, $this->repository->find(1)->priority);
+        
         // Running
         $this->repository->update(1, MigrationStatus::MIGRATION_STATUS_RUNNING);
         $this->assertEquals(MigrationStatus::MIGRATION_STATUS_RUNNING, $this->repository->find(1)->status);

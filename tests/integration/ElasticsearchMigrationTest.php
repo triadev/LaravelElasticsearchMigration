@@ -65,7 +65,7 @@ class ElasticsearchMigrationTest extends TestCase
     /**
      * @test
      */
-    public function it_adds_migration_steps()
+    public function it_adds_migration_steps_with_priority()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
         
@@ -76,7 +76,17 @@ class ElasticsearchMigrationTest extends TestCase
         
         $this->addMigrationSteps();
         
-        $this->assertEquals(7, $this->migrationRepository->find('phpunit')->migrationSteps()->count());
+        $migrationSteps = $this->migrationRepository->find('phpunit')->migrationSteps()->getResults();
+        
+        $this->assertEquals(7, count($migrationSteps));
+        
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_CREATE_INDEX, $migrationSteps[0]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING, $migrationSteps[1]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_DELETE_INDEX, $migrationSteps[2]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_PUT_ALIAS, $migrationSteps[3]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY, $migrationSteps[4]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_REINDEX, $migrationSteps[5]->type);
+        $this->assertEquals(MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY, $migrationSteps[6]->type);
     }
     
     /**
@@ -243,7 +253,7 @@ class ElasticsearchMigrationTest extends TestCase
             MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
             [
                 'index' => 'index',
-               'body' => [
+                'body' => [
                    'mappings' => [
                        'phpunit' => [
                            'dynamic' => 'strict',
@@ -260,8 +270,9 @@ class ElasticsearchMigrationTest extends TestCase
                    'settings' => [
                        'refresh_interval' => "30s"
                    ]
-               ]
-            ]
+                ]
+            ],
+            1
         ));
     
         // Update index
@@ -270,7 +281,8 @@ class ElasticsearchMigrationTest extends TestCase
             MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
             [
                 'index' => 'index'
-            ]
+            ],
+            2
         ));
     
         // Delete index
@@ -279,7 +291,8 @@ class ElasticsearchMigrationTest extends TestCase
             MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
             [
                 'index' => 'index'
-            ]
+            ],
+            2
         ));
     
         // Alias
@@ -288,7 +301,8 @@ class ElasticsearchMigrationTest extends TestCase
             MigrationTypes::MIGRATION_TYPE_PUT_ALIAS,
             [
                 'index' => 'index'
-            ]
+            ],
+            2
         ));
     
         // Delete by query
@@ -298,7 +312,8 @@ class ElasticsearchMigrationTest extends TestCase
             [
                 'index' => 'index',
                 'query' => []
-            ]
+            ],
+            2
         ));
     
         // Update by query
@@ -308,7 +323,8 @@ class ElasticsearchMigrationTest extends TestCase
             [
                 'index' => 'index',
                 'query' => []
-            ]
+            ],
+            3
         ));
     
         // Reindex
@@ -318,7 +334,8 @@ class ElasticsearchMigrationTest extends TestCase
             [
                 'index' => 'index',
                 'destIndex' => 'phpunit'
-            ]
+            ],
+            2
         ));
     }
 }

@@ -12,6 +12,7 @@ interface ElasticsearchMigrationStepContract
      * @param int $migrationId
      * @param string $type
      * @param array $params
+     * @param int $priority
      * @return ElasticsearchMigrationStep
      *
      * @throws \Throwable
@@ -19,7 +20,8 @@ interface ElasticsearchMigrationStepContract
     public function create(
         int $migrationId,
         string $type,
-        array $params = []
+        array $params = [],
+        int $priority = 1
     ) : ElasticsearchMigrationStep;
     
     /**
@@ -28,6 +30,7 @@ interface ElasticsearchMigrationStepContract
      * @param int $migrationStepId
      * @param int $status
      * @param string|null $error
+     * @param int|null $priority
      * @return ElasticsearchMigrationStep
      *
      * @throws MigrationsNotExist
@@ -36,7 +39,8 @@ interface ElasticsearchMigrationStepContract
     public function update(
         int $migrationStepId,
         int $status,
-        ?string $error = null
+        ?string $error = null,
+        ?int $priority = null
     ) : ElasticsearchMigrationStep;
     
     /**
