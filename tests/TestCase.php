@@ -3,11 +3,15 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Provider\ElasticsearchMigrationServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
     use RefreshDatabase;
+    
+    /** @var ElasticsearchClients */
+    public $elasticsearchClients;
     
     /**
      * Setup the test environment.
@@ -15,6 +19,16 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function setUp()
     {
         parent::setUp();
+    
+        $this->elasticsearchClients = new ElasticsearchClients();
+        $this->elasticsearchClients->add(
+            'phpunit',
+            'localhost',
+            env('ELASTICSEARCH_PORT'),
+            'http',
+            '',
+            ''
+        );
     }
     
     /**

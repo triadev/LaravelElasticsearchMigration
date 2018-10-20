@@ -5,10 +5,10 @@ use Tests\TestCase;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Migration\AbstractMigration;
-use Triadev\EsMigration\Business\Migration\DeleteAlias;
+use Triadev\EsMigration\Business\Migration\UpdateByQuery;
 use Triadev\EsMigration\Models\MigrationStep;
 
-class DeleteAliasTest extends TestCase
+class UpdateByQueryTest extends TestCase
 {
     /** @var AbstractMigration */
     private $migration;
@@ -20,11 +20,11 @@ class DeleteAliasTest extends TestCase
     {
         parent::setUp();
         
-        $this->migration = new DeleteAlias();
-        
+        $this->migration = new UpdateByQuery();
+    
         $client = $this->elasticsearchClients->get('phpunit')->indices();
         if ($client->exists(['index' => 'index'])) {
-            $client->delete(['index' => 'index']);
+           $client->delete(['index' => 'index']);
         }
     
         $client->create([
@@ -35,7 +35,7 @@ class DeleteAliasTest extends TestCase
                         'dynamic' => 'strict',
                         'properties' => [
                             'title' => [
-                                'type' => 'text'
+                                'type' => 'keyword'
                             ],
                             'count' => [
                                 'type' => 'integer'
@@ -58,7 +58,7 @@ class DeleteAliasTest extends TestCase
     {
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_DELETE_ALIAS,
+            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
@@ -73,37 +73,14 @@ class DeleteAliasTest extends TestCase
      */
     public function it_fails_if_index_not_exist()
     {
-        $this->elasticsearchClients->get('phpunit')->indices()->delete(['index' => 'index']);
+        $this->elasticsearchClients->get('phpunit')->delete(['index' => 'index']);
         
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_DELETE_ALIAS,
+            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
-            [
-                'index' => 'index',
-                'name' => 'Alias'
-            ],
-            new \DateTime(),
-            new \DateTime()
-        ));
-    }
-    
-    /**
-     * @test
-     * @expectedException \Exception
-     */
-    public function it_fails_if_alias_not_exist()
-    {
-        $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
-            1,
-            MigrationTypes::MIGRATION_TYPE_DELETE_ALIAS,
-            MigrationStatus::MIGRATION_STATUS_WAIT,
-            null,
-            [
-                'index' => 'index',
-                'name' => 'Alias'
-            ],
+            $this->getValidPayload(),
             new \DateTime(),
             new \DateTime()
         ));
@@ -115,33 +92,71 @@ class DeleteAliasTest extends TestCase
     public function it_runs_migration()
     {
         $esClient = $this->elasticsearchClients->get('phpunit');
-        
-        $esClient->indices()->putAlias([
+        $esClient->index([
             'index' => 'index',
-            'name' => 'Alias'
+            'type' => 'phpunit',
+            'body' => [
+                'title' => 'Title',
+                'count' => 1
+            ]
+        ]);
+    
+        // Before update
+        $esClient->indices()->refresh(['index' => 'index']);
+        
+        $result = $esClient->search([
+            'body' => [
+                'query' => [
+                    'term' => [
+                        'title' => 'Title'
+                    ]
+                ]
+            ]
         ]);
         
-        $this->assertTrue($esClient->indices()->existsAlias([
-            'index' => 'index',
-            'name' => 'Alias'
-        ]));
+        $this->assertEquals(1, array_get($result, 'hits.hits.0._source.count'));
     
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_DELETE_ALIAS,
+            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
-            [
-                'index' => 'index',
-                'name' => 'Alias'
-            ],
+            $this->getValidPayload(),
             new \DateTime(),
             new \DateTime()
         ));
     
-        $this->assertFalse($esClient->indices()->existsAlias([
+        // After update
+        $esClient->indices()->refresh(['index' => 'index']);
+        
+        $result = $esClient->search([
+            'body' => [
+                'query' => [
+                    'term' => [
+                        'title' => 'Title'
+                    ]
+                ]
+            ]
+        ]);
+    
+        $this->assertEquals(2, array_get($result, 'hits.hits.0._source.count'));
+    }
+    
+    private function getValidPayload() : array
+    {
+        return [
             'index' => 'index',
-            'name' => 'Alias'
-        ]));
+            'body' => [
+                'query' => [
+                    'term' => [
+                        'title' => 'Title'
+                    ]
+                ],
+                'script' => [
+                    'source' => 'ctx._source.count++',
+                    'lang' => 'painless'
+                ]
+            ]
+        ];
     }
 }

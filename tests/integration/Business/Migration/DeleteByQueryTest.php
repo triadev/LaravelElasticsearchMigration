@@ -6,14 +6,10 @@ use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Migration\AbstractMigration;
 use Triadev\EsMigration\Business\Migration\DeleteByQuery;
-use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Models\MigrationStep;
 
 class DeleteByQueryTest extends TestCase
 {
-    /** @var ElasticsearchClients */
-    private $elasticsearchClients;
-    
     /** @var AbstractMigration */
     private $migration;
     
@@ -25,16 +21,6 @@ class DeleteByQueryTest extends TestCase
         parent::setUp();
         
         $this->migration = new DeleteByQuery();
-    
-        $this->elasticsearchClients = new ElasticsearchClients();
-        $this->elasticsearchClients->add(
-            'phpunit',
-            'localhost',
-            env('ELASTICSEARCH_PORT'),
-            'http',
-            '',
-            ''
-        );
     
         $client = $this->elasticsearchClients->get('phpunit')->indices();
         if ($client->exists(['index' => 'index'])) {
@@ -69,7 +55,7 @@ class DeleteByQueryTest extends TestCase
     {
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
+            MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
@@ -88,7 +74,7 @@ class DeleteByQueryTest extends TestCase
         
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
+            MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             $this->getValidPayload(),
@@ -116,7 +102,7 @@ class DeleteByQueryTest extends TestCase
     
         $this->migration->migrate($this->elasticsearchClients->get('phpunit'), new MigrationStep(
             1,
-            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
+            MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY,
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             $this->getValidPayload(),

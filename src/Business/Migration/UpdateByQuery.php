@@ -27,7 +27,10 @@ class UpdateByQuery extends AbstractMigration
      */
     public function preCheck(Client $esClient, array $params)
     {
-        // TODO: Implement preCheck() method.
+        $index = $params['index'];
+        if (!$esClient->indices()->exists(['index' => $index])) {
+            throw new \Exception(sprintf("Index not exist: %s", $index));
+        }
     }
     
     /**

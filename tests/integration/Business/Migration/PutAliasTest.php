@@ -6,14 +6,10 @@ use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Migration\AbstractMigration;
 use Triadev\EsMigration\Business\Migration\PutAlias;
-use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Models\MigrationStep;
 
 class PutAliasTest extends TestCase
 {
-    /** @var ElasticsearchClients */
-    private $elasticsearchClients;
-    
     /** @var AbstractMigration */
     private $migration;
     
@@ -25,16 +21,6 @@ class PutAliasTest extends TestCase
         parent::setUp();
         
         $this->migration = new PutAlias();
-    
-        $this->elasticsearchClients = new ElasticsearchClients();
-        $this->elasticsearchClients->add(
-            'phpunit',
-            'localhost',
-            env('ELASTICSEARCH_PORT'),
-            'http',
-            '',
-            ''
-        );
         
         $client = $this->elasticsearchClients->get('phpunit')->indices();
         if ($client->exists(['index' => 'index'])) {

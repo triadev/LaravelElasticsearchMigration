@@ -9,7 +9,6 @@ use Triadev\EsMigration\Business\Events\MigrationStepDone;
 use Triadev\EsMigration\Business\Events\MigrationStepRunning;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
-use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as ElasticsearchMigrationRepository;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract as ElasticsearchMigrationStepRepository;
@@ -26,9 +25,6 @@ class ElasticsearchMigrationTest extends TestCase
     /** @var ElasticsearchMigrationStepRepository */
     private $migrationStepRepository;
     
-    /** @var ElasticsearchClients */
-    private $elasticsearchClients;
-    
     /**
      * SetUp
      */
@@ -39,16 +35,6 @@ class ElasticsearchMigrationTest extends TestCase
         $this->migrationService = app(ElasticsearchMigrationContract::class);
         $this->migrationRepository = app(ElasticsearchMigrationRepository::class);
         $this->migrationStepRepository = app(ElasticsearchMigrationStepRepository::class);
-        
-        $this->elasticsearchClients = new ElasticsearchClients();
-        $this->elasticsearchClients->add(
-            'phpunit',
-            'localhost',
-            env('ELASTICSEARCH_PORT'),
-            'http',
-            '',
-            ''
-        );
     
         /** @var Client $esClient */
         $esClient = $this->elasticsearchClients->get('phpunit');
