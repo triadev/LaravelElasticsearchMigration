@@ -18,6 +18,12 @@ class MigrationStep
     /** @var array */
     private $params;
     
+    /** @var int */
+    private $priority;
+    
+    /** @var bool */
+    private $stopOnFailure;
+    
     /** @var \DateTime */
     private $createdAt;
     
@@ -31,6 +37,8 @@ class MigrationStep
      * @param int $status
      * @param null|string $error
      * @param array $params
+     * @param int $priority
+     * @param bool $stopOnFailure
      * @param \DateTime $createdAt
      * @param \DateTime $updatedAt
      */
@@ -40,6 +48,8 @@ class MigrationStep
         int $status,
         ?string $error,
         array $params,
+        int $priority,
+        bool $stopOnFailure,
         \DateTime $createdAt,
         \DateTime $updatedAt
     ) {
@@ -48,6 +58,8 @@ class MigrationStep
         $this->status = $status;
         $this->error = $error;
         $this->params = $params;
+        $this->priority = $priority;
+        $this->stopOnFailure = $stopOnFailure;
         $this->createdAt = $createdAt;
         $this->updatedAt = $updatedAt;
     }
@@ -106,5 +118,21 @@ class MigrationStep
     public function getUpdatedAt(): \DateTime
     {
         return $this->updatedAt;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getPriority(): int
+    {
+        return $this->priority;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isStopOnFailure(): bool
+    {
+        return $this->stopOnFailure;
     }
 }

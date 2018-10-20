@@ -62,6 +62,8 @@ class DeleteAliasTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -84,6 +86,8 @@ class DeleteAliasTest extends TestCase
                 'index' => 'index',
                 'name' => 'Alias'
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -104,6 +108,8 @@ class DeleteAliasTest extends TestCase
                 'index' => 'index',
                 'name' => 'Alias'
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -135,6 +141,8 @@ class DeleteAliasTest extends TestCase
                 'index' => 'index',
                 'name' => 'Alias'
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));

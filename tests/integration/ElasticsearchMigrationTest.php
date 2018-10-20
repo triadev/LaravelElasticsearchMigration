@@ -9,6 +9,7 @@ use Triadev\EsMigration\Business\Events\MigrationStepDone;
 use Triadev\EsMigration\Business\Events\MigrationStepRunning;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
+use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as ElasticsearchMigrationRepository;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract as ElasticsearchMigrationStepRepository;
@@ -125,6 +126,7 @@ class ElasticsearchMigrationTest extends TestCase
         $this->assertEquals([
             'migration' => 'phpunit',
             'status' => null,
+            'error' => null,
             'steps' => []
         ], $this->migrationService->getMigrationStatus('phpunit'));
     
@@ -142,6 +144,12 @@ class ElasticsearchMigrationTest extends TestCase
         foreach ($result['steps'] as $step) {
             $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $step['status']);
             $this->assertEquals(null, $step['error']);
+            
+            $this->assertTrue(is_array($step['params']));
+            $this->assertTrue(is_int($step['priority']));
+            $this->assertTrue(is_bool($step['stop_on_failure']));
+            $this->assertTrue($step['created_at'] instanceof \DateTime);
+            $this->assertTrue($step['updated_at'] instanceof \DateTime);
         }
     }
     
@@ -206,6 +214,127 @@ class ElasticsearchMigrationTest extends TestCase
             $this->assertEquals(MigrationStatus::MIGRATION_STATUS_DONE, $step['status']);
             $this->assertEquals(null, $step['error']);
         }
+    }
+    
+    /**
+     * @test
+     */
+    public function the_migration_fails_if_no_alive_elasticsearch_nodes_found_in_cluster()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ]
+        ));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
+            [
+                'index' => 'index'
+            ]
+        ));
+    
+        $clients = new ElasticsearchClients();
+        $clients->add(
+            'phpunit',
+            'INVALID',
+            env('ELASTICSEARCH_PORT'),
+            'http',
+            '',
+            ''
+        );
+    
+        $this->migrationService->startMigration('phpunit', $clients);
+    
+        $result = $this->migrationService->getMigrationStatus('phpunit');
+        
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_ERROR, array_get($result, 'status'));
+        $this->assertEquals( 'No alive nodes found in your cluster', array_get($result, 'error'));
+    }
+    
+    /**
+     * @test
+     */
+    public function it_starts_migration_and_stop_pipeline_on_failure()
+    {
+        $this->runStopOnFailurePipeline(true);
+    
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
+        $this->assertFalse($this->elasticsearchClients->get('phpunit')->indices()->exists(['index' => 'index']));
+    }
+    
+    /**
+     * @test
+     */
+    public function it_starts_migration_and_continue_pipeline_on_failure()
+    {
+        $this->runStopOnFailurePipeline(false);
+        
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
+        $this->assertTrue($this->elasticsearchClients->get('phpunit')->indices()->exists(['index' => 'index']));
+    }
+    
+    private function runStopOnFailurePipeline(bool $stopOnFailure)
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
+            [
+                'index' => 'index'
+            ],
+            1,
+            $stopOnFailure
+        ));
+    
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ],
+            1
+        ));
     }
     
     /**

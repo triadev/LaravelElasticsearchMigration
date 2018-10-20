@@ -60,6 +60,8 @@ class DeleteIndexTest extends TestCase
             MigrationStatus::MIGRATION_STATUS_WAIT,
             null,
             [],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -81,6 +83,8 @@ class DeleteIndexTest extends TestCase
             [
                 'index' => 'index'
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));
@@ -103,6 +107,8 @@ class DeleteIndexTest extends TestCase
             [
                 'index' => 'index'
             ],
+            1,
+            true,
             new \DateTime(),
             new \DateTime()
         ));

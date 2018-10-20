@@ -53,6 +53,8 @@ class MigrationSteps
                     $migrationStepEntity->status,
                     $migrationStepEntity->error,
                     json_decode($migrationStepEntity->params, true),
+                    $migrationStepEntity->priority,
+                    $migrationStepEntity->stop_on_failure,
                     new \DateTime($migrationStepEntity->created_at),
                     new \DateTime($migrationStepEntity->updated_at)
                 );

@@ -31,6 +31,7 @@ class ElasticsearchClients
      * @param string $scheme
      * @param null|string $user
      * @param null|string $password
+     * @param int $retries
      */
     public function add(
         string $esClientKey,
@@ -38,7 +39,8 @@ class ElasticsearchClients
         int $port,
         string $scheme,
         ?string $user = null,
-        ?string $password = null
+        ?string $password = null,
+        int $retries = 1
     ) {
         $this->elasticsearchClients[$esClientKey] = $this->clientBuilder->setHosts([
             [
@@ -48,7 +50,7 @@ class ElasticsearchClients
                 'user' => $user,
                 'pass' => $password
             ]
-        ])->build();
+        ])->setRetries($retries)->build();
     }
     
     /**
