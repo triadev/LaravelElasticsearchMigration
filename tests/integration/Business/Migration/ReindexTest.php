@@ -5,7 +5,6 @@ use Tests\TestCase;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Migration\AbstractMigration;
-use Triadev\EsMigration\Business\Migration\PutAlias;
 use Triadev\EsMigration\Business\Migration\Reindex;
 use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Models\MigrationStep;

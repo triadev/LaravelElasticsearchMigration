@@ -13,7 +13,9 @@ class DeleteByQuery extends AbstractMigration
     public function getValidationRules(): array
     {
         return [
-            'index' => 'required|string'
+            'index' => 'required|string',
+            'body' => 'required|array',
+            'body.query' => 'required|array'
         ];
     }
     
@@ -27,7 +29,10 @@ class DeleteByQuery extends AbstractMigration
      */
     public function preCheck(Client $esClient, array $params)
     {
-        // TODO: Implement preCheck() method.
+        $index = $params['index'];
+        if (!$esClient->indices()->exists(['index' => $index])) {
+            throw new \Exception(sprintf("Index not exist: %s", $index));
+        }
     }
     
     /**
