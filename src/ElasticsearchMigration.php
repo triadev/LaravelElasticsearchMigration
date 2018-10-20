@@ -1,16 +1,6 @@
 <?php
 namespace Triadev\EsMigration;
 
-use Triadev\EsMigration\Business\Migration\AbstractMigration;
-use Triadev\EsMigration\Business\Migration\CreateIndex;
-use Triadev\EsMigration\Business\Migration\DeleteAlias;
-use Triadev\EsMigration\Business\Migration\DeleteByQuery;
-use Triadev\EsMigration\Business\Migration\DeleteIndex;
-use Triadev\EsMigration\Business\Migration\PutAlias;
-use Triadev\EsMigration\Business\Migration\Reindex;
-use Triadev\EsMigration\Business\Migration\UpdateByQuery;
-use Triadev\EsMigration\Business\Migration\UpdateIndexMapping;
-use Triadev\EsMigration\Business\Migration\UpdateIndexSetting;
 use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Business\Service\MigrationSteps;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
@@ -61,15 +51,25 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /**
      * @inheritdoc
      */
-    public function addMigrationStep(string $migration, string $type, array $params = []) : bool
-    {
+    public function addMigrationStep(
+        string $migration,
+        string $type,
+        array $params = [],
+        int $priority = 1
+    ) : bool {
         if (!(new MigrationTypes())->isMigrationTypeValid($type)) {
             return false;
         }
         
         try {
             if ($migration = $this->migrationRepository->find($migration)) {
-                $this->migrationStepRepository->create($migration->id, $type, $params);
+                $this->migrationStepRepository->create(
+                    $migration->id,
+                    $type,
+                    $params,
+                    $priority
+                );
+                
                 return true;
             }
         } catch (\Throwable $e) {

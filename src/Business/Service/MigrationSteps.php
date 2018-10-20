@@ -40,7 +40,7 @@ class MigrationSteps
         $migrations = [];
     
         if ($migrationEntity = $this->migrationRepository->find($migration)) {
-            foreach ($migrationEntity->migrationSteps()->getResults() as $migrationStepEntity) {
+            foreach ($migrationEntity->migrationSteps()->cursor() as $migrationStepEntity) {
                 /** @var ElasticsearchMigrationStep $migrationStepEntity */
                 if ($withoutDoneSteps &&
                     $migrationStepEntity->status == MigrationStatus::MIGRATION_STATUS_DONE) {

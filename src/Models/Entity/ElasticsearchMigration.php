@@ -26,6 +26,10 @@ class ElasticsearchMigration extends Model
      */
     public function migrationSteps() : HasMany
     {
-        return $this->hasMany(ElasticsearchMigrationStep::class, 'migration_id');
+        return $this->hasMany(ElasticsearchMigrationStep::class, 'migration_id')
+            ->orderBy(
+                'priority',
+                'asc'
+            );
     }
 }

@@ -16,7 +16,8 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
     public function create(
         int $migrationId,
         string $type,
-        array $params = []
+        array $params = [],
+        int $priority = 1
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep {
         $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep();
         
@@ -24,6 +25,7 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
         $dbMigration->type = $type;
         $dbMigration->status = MigrationStatus::MIGRATION_STATUS_WAIT;
         $dbMigration->params = json_encode($params);
+        $dbMigration->priority = $priority;
     
         $dbMigration->saveOrFail();
     
@@ -36,7 +38,8 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
     public function update(
         int $migrationStepId,
         int $status,
-        ?string $error = null
+        ?string $error = null,
+        ?int $priority = null
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep {
         $entity = $this->find($migrationStepId);
         if (!$entity) {
@@ -46,6 +49,10 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
         if ((new MigrationStatus())->isMigrationStatusValid($status)) {
             $entity->status = $status;
             $entity->error = $error;
+        }
+        
+        if (is_int($priority)) {
+            $entity->priority = $priority;
         }
         
         $entity->saveOrFail();

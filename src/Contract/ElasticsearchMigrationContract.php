@@ -20,9 +20,15 @@ interface ElasticsearchMigrationContract
      * @param string $migration
      * @param string $type
      * @param array $params
+     * @param int $priority
      * @return bool
      */
-    public function addMigrationStep(string $migration, string $type, array $params = []) : bool;
+    public function addMigrationStep(
+        string $migration,
+        string $type,
+        array $params = [],
+        int $priority = 1
+    ) : bool;
     
     /**
      * Get migration status

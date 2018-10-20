@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property integer $status
  * @property string|null $error
  * @property string $params
+ * @property integer $priority
  * @property string $created_at
  * @property string $updated_at
  */
