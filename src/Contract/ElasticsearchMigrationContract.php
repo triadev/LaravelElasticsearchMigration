@@ -81,4 +81,15 @@ interface ElasticsearchMigrationContract
      * @throws \Throwable
      */
     public function startMigration(string $migration, ElasticsearchClients $elasticsearchClients);
+    
+    /**
+     * Restart migration
+     *
+     * @param string $migration
+     * @param ElasticsearchClients $elasticsearchClients
+     *
+     * @throws MigrationAlreadyDone
+     * @throws \Throwable
+     */
+    public function restartMigration(string $migration, ElasticsearchClients $elasticsearchClients);
 }

@@ -158,17 +158,32 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     {
         $this->checkIfMigrationAlreadyDone($migration);
         $this->checkIfMigrationAlreadyRunning($migration);
+    
+        $this->migrate($migration, $elasticsearchClients);
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function restartMigration(string $migration, ElasticsearchClients $elasticsearchClients)
+    {
+        $this->checkIfMigrationAlreadyRunning($migration);
         
+        $this->migrate($migration, $elasticsearchClients);
+    }
+    
+    private function migrate(string $migration, ElasticsearchClients $elasticsearchClients)
+    {
         try {
             $migrationSteps = $this->migrationStepService->getMigrationSteps($migration, true);
-    
+        
             if (!empty($migrationSteps)) {
                 $this->migrationRepository->createOrUpdate($migration, MigrationStatus::MIGRATION_STATUS_RUNNING);
-    
+            
                 foreach ($migrationSteps as $migrationStep) {
                     $this->startMigrationStep($migrationStep, $elasticsearchClients);
                 }
-    
+            
                 $this->migrationRepository->createOrUpdate($migration, MigrationStatus::MIGRATION_STATUS_DONE);
             }
         } catch (\Exception $e) {
