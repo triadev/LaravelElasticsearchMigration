@@ -418,6 +418,48 @@ class ElasticsearchMigrationTest extends TestCase
         $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
     }
     
+    /**
+     * @test
+     * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyRunning
+     */
+    public function it_throws_an_exception_if_a_migration_already_running()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ]
+        ));
+        
+        $this->migrationRepository->createOrUpdate(
+            'phpunit',
+            MigrationStatus::MIGRATION_STATUS_RUNNING,
+            null
+        );
+        
+        $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
+    }
+    
     private function addMigrationSteps()
     {
         // Create index

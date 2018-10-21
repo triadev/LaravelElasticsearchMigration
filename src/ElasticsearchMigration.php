@@ -7,6 +7,7 @@ use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
+use Triadev\EsMigration\Exception\MigrationAlreadyRunning;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration as ElasticsearchMigrationEntity;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as EsMigrationRepositoryInterface;
@@ -156,6 +157,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     public function startMigration(string $migration, ElasticsearchClients $elasticsearchClients)
     {
         $this->checkIfMigrationAlreadyDone($migration);
+        $this->checkIfMigrationAlreadyRunning($migration);
         
         try {
             $migrationSteps = $this->migrationStepService->getMigrationSteps($migration, true);
@@ -185,6 +187,16 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         if ($migrationEntity instanceof ElasticsearchMigrationEntity &&
             $migrationEntity->status == MigrationStatus::MIGRATION_STATUS_DONE) {
             throw new MigrationAlreadyDone();
+        }
+    }
+    
+    private function checkIfMigrationAlreadyRunning(string $migration)
+    {
+        $migrationEntity = $this->migrationRepository->find($migration);
+        
+        if ($migrationEntity instanceof ElasticsearchMigrationEntity &&
+            $migrationEntity->status == MigrationStatus::MIGRATION_STATUS_RUNNING) {
+            throw new MigrationAlreadyRunning();
         }
     }
     
