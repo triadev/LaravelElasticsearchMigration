@@ -6,11 +6,15 @@ use Triadev\EsMigration\Business\Events\MigrationStepDone;
 use Triadev\EsMigration\Business\Events\MigrationStepError;
 use Triadev\EsMigration\Business\Events\MigrationStepRunning;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
+use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 
 class ElasticsearchMigrationStepTest extends TestCase
 {
+    /** @var ElasticsearchMigrationContract */
+    private $repositoryMigration;
+    
     /** @var ElasticsearchMigrationStepContract */
     private $repository;
     
@@ -18,6 +22,7 @@ class ElasticsearchMigrationStepTest extends TestCase
     {
         parent::setUp();
         
+        $this->repositoryMigration = app(ElasticsearchMigrationContract::class);
         $this->repository = app(ElasticsearchMigrationStepContract::class);
     }
     
@@ -26,9 +31,11 @@ class ElasticsearchMigrationStepTest extends TestCase
      */
     public function it_creates_a_migration()
     {
+        $migration = $this->repositoryMigration->createOrUpdate('phpunit');
+        
         $this->assertNull($this->repository->find(1));
         
-        $this->repository->create(2, 'createIndex', [
+        $this->repository->create($migration->id, 'createIndex', [
             'index' => 'phpunit'
         ], 2);
         
@@ -37,7 +44,10 @@ class ElasticsearchMigrationStepTest extends TestCase
             $this->repository->find(1)
         );
         
-        $this->assertEquals(1, ElasticsearchMigrationStep::where('migration_id', '=', 2)->count());
+        $this->assertEquals(
+            1,
+            ElasticsearchMigrationStep::where('migration_id', '=', $migration->id)->count()
+        );
         
         $migrationStep = $this->repository->find(1);
         $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $migrationStep->status);
@@ -54,10 +64,12 @@ class ElasticsearchMigrationStepTest extends TestCase
             MigrationStepError::class,
             MigrationStepDone::class
         ]);
+    
+        $migration = $this->repositoryMigration->createOrUpdate('phpunit');
         
         $this->assertNull($this->repository->find(1));
         
-        $this->repository->create(2, 'createIndex', [
+        $this->repository->create($migration->id, 'createIndex', [
             'index' => 'phpunit'
         ]);
         $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $this->repository->find(1)->status);
@@ -98,13 +110,15 @@ class ElasticsearchMigrationStepTest extends TestCase
      */
     public function it_finds_a_migration()
     {
-        $this->repository->create(2, 'createIndex', [
+        $migration = $this->repositoryMigration->createOrUpdate('phpunit');
+        
+        $migrationStep = $this->repository->create($migration->id, 'createIndex', [
             'index' => 'phpunit'
         ]);
         
         $this->assertInstanceOf(
             ElasticsearchMigrationStep::class,
-            $this->repository->find(1)
+            $this->repository->find($migrationStep->id)
         );
     }
     
@@ -113,7 +127,9 @@ class ElasticsearchMigrationStepTest extends TestCase
      */
     public function it_deletes_a_migration()
     {
-        $this->repository->create(2, 'createIndex', [
+        $migration = $this->repositoryMigration->createOrUpdate('phpunit');
+        
+        $this->repository->create($migration->id, 'createIndex', [
             'index' => 'phpunit'
         ]);
     

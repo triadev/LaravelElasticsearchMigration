@@ -51,6 +51,20 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     /**
      * @inheritdoc
      */
+    public function deleteMigration(string $migration) : bool
+    {
+        try {
+            $this->migrationRepository->delete($migration);
+        } catch (\Throwable $e) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * @inheritdoc
+     */
     public function addMigrationStep(
         string $migration,
         string $type,

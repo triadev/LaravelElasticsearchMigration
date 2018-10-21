@@ -93,12 +93,31 @@ class ElasticsearchMigrationTest extends TestCase
     /**
      * @test
      */
+    public function it_deletes_a_migration_with_all_steps()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        
+        $this->addMigrationSteps();
+        
+        $this->assertNotNull($this->migrationRepository->find('phpunit'));
+        $this->assertNotNull($this->migrationStepRepository->find(1));
+        $this->assertEquals(7, $this->migrationRepository->find('phpunit')->migrationSteps()->count());
+        
+        $this->assertTrue($this->migrationService->deleteMigration('phpunit'));
+        
+        $this->assertNull($this->migrationRepository->find('phpunit'));
+        $this->assertNull($this->migrationStepRepository->find(1));
+    }
+    
+    /**
+     * @test
+     */
     public function it_deletes_a_migration_step()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
         
         $this->addMigrationSteps();
-
+        
         $this->assertEquals(
             7,
             $this->migrationRepository->find('phpunit')->migrationSteps()->count()
@@ -107,7 +126,7 @@ class ElasticsearchMigrationTest extends TestCase
         $this->migrationService->deleteMigrationStep(1);
         $this->migrationService->deleteMigrationStep(2);
         $this->migrationService->deleteMigrationStep(3);
-    
+        
         $this->assertEquals(
             4,
             $this->migrationRepository->find('phpunit')->migrationSteps()->count()
