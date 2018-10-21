@@ -3,6 +3,7 @@ namespace Triadev\EsMigration\Contract;
 
 use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
+use Triadev\EsMigration\Exception\MigrationStepNotFound;
 
 interface ElasticsearchMigrationContract
 {
@@ -47,6 +48,17 @@ interface ElasticsearchMigrationContract
      * @return bool
      */
     public function deleteMigrationStep(int $migrationStepId) : bool;
+    
+    /**
+     * Start single migration step
+     *
+     * @param int $migrationStepId
+     * @param ElasticsearchClients $elasticsearchClients
+     *
+     * @throws MigrationStepNotFound
+     * @throws \Throwable
+     */
+    public function startSingleMigrationStep(int $migrationStepId, ElasticsearchClients $elasticsearchClients);
     
     /**
      * Get migration status

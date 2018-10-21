@@ -163,6 +163,17 @@ class ElasticsearchMigrationTest extends TestCase
     
     /**
      * @test
+     * @expectedException \Triadev\EsMigration\Exception\MigrationStepNotFound
+     */
+    public function it_starts_a_single_migration_step()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        
+        $this->migrationService->startSingleMigrationStep(1, $this->elasticsearchClients);
+    }
+    
+    /**
+     * @test
      */
     public function it_gets_migration_status()
     {

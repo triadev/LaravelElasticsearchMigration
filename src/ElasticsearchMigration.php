@@ -8,6 +8,7 @@ use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Business\Mapper\MigrationTypes;
 use Triadev\EsMigration\Business\Mapper\MigrationStatus;
 use Triadev\EsMigration\Exception\MigrationAlreadyRunning;
+use Triadev\EsMigration\Exception\MigrationStepNotFound;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigration as ElasticsearchMigrationEntity;
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as EsMigrationRepositoryInterface;
@@ -97,10 +98,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     }
     
     /**
-     * Delete migration step
-     *
-     * @param int $migrationStepId
-     * @return bool
+     * @inheritdoc
      */
     public function deleteMigrationStep(int $migrationStepId) : bool
     {
@@ -111,6 +109,18 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
         
         return true;
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function startSingleMigrationStep(int $migrationStepId, ElasticsearchClients $elasticsearchClients)
+    {
+        if ($migrationStep = $this->migrationStepService->getMigrationStep($migrationStepId)) {
+            $this->startMigrationStep($migrationStep, $elasticsearchClients);
+        } else {
+            throw new MigrationStepNotFound();
+        }
     }
     
     /**
@@ -172,6 +182,11 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         $this->migrate($migration, $elasticsearchClients);
     }
     
+    /**
+     * @param string $migration
+     * @param ElasticsearchClients $elasticsearchClients
+     * @throws \Throwable
+     */
     private function migrate(string $migration, ElasticsearchClients $elasticsearchClients)
     {
         try {
@@ -195,6 +210,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
     }
     
+    /**
+     * @param string $migration
+     * @throws MigrationAlreadyDone
+     */
     private function checkIfMigrationAlreadyDone(string $migration)
     {
         $migrationEntity = $this->migrationRepository->find($migration);
@@ -205,6 +224,10 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
     }
     
+    /**
+     * @param string $migration
+     * @throws MigrationAlreadyRunning
+     */
     private function checkIfMigrationAlreadyRunning(string $migration)
     {
         $migrationEntity = $this->migrationRepository->find($migration);
@@ -215,6 +238,12 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
         }
     }
     
+    /**
+     * @param MigrationStep $migrationStep
+     * @param ElasticsearchClients $elasticsearchClients
+     * @throws Exception\MigrationsNotExist
+     * @throws \Throwable
+     */
     private function startMigrationStep(
         MigrationStep $migrationStep,
         ElasticsearchClients $elasticsearchClients
@@ -229,7 +258,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             }
     
             $this->migrationStepRepository->update($migrationStep->getId(), MigrationStatus::MIGRATION_STATUS_DONE);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->migrationStepRepository->update(
                 $migrationStep->getId(),
                 MigrationStatus::MIGRATION_STATUS_ERROR,

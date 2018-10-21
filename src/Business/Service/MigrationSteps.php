@@ -47,20 +47,40 @@ class MigrationSteps
                     continue;
                 }
                 
-                $migrations[] = new MigrationStep(
-                    $migrationStepEntity->id,
-                    $migrationStepEntity->type,
-                    $migrationStepEntity->status,
-                    $migrationStepEntity->error,
-                    json_decode($migrationStepEntity->params, true),
-                    $migrationStepEntity->priority,
-                    $migrationStepEntity->stop_on_failure,
-                    new \DateTime($migrationStepEntity->created_at),
-                    new \DateTime($migrationStepEntity->updated_at)
-                );
+                $migrations[] = $this->buildMigrationStep($migrationStepEntity);
             }
         }
     
         return $migrations;
+    }
+    
+    /**
+     * Get migration step
+     *
+     * @param int $migrationStepId
+     * @return null|MigrationStep
+     */
+    public function getMigrationStep(int $migrationStepId) : ?MigrationStep
+    {
+        if ($migrationStepEntity = $this->migrationStepRepository->find($migrationStepId)) {
+            return $this->buildMigrationStep($migrationStepEntity);
+        }
+        
+        return null;
+    }
+    
+    private function buildMigrationStep(ElasticsearchMigrationStep $elasticsearchMigrationStepEntity) : MigrationStep
+    {
+        return new MigrationStep(
+            $elasticsearchMigrationStepEntity->id,
+            $elasticsearchMigrationStepEntity->type,
+            $elasticsearchMigrationStepEntity->status,
+            $elasticsearchMigrationStepEntity->error,
+            json_decode($elasticsearchMigrationStepEntity->params, true),
+            $elasticsearchMigrationStepEntity->priority,
+            $elasticsearchMigrationStepEntity->stop_on_failure,
+            new \DateTime($elasticsearchMigrationStepEntity->created_at),
+            new \DateTime($elasticsearchMigrationStepEntity->updated_at)
+        );
     }
 }
