@@ -33,6 +33,24 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
                 );
             }
         );
+    
+        $this->app->bind(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationAuditLogContract::class,
+            function () {
+                return app()->make(
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationAuditLog::class
+                );
+            }
+        );
+    
+        $this->app->bind(
+            \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepAuditLogContract::class,
+            function () {
+                return app()->make(
+                    \Triadev\EsMigration\Business\Repository\ElasticsearchMigrationStepAuditLog::class
+                );
+            }
+        );
     }
     
     /**
