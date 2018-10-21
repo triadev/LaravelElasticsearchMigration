@@ -62,7 +62,6 @@ Namespace: Triadev\EsMigration\Business\Events
 
 ## Roadmap
 - stop migration
-- restart migration step
 - audit logs
 - create/delete templates
 - shrink index
