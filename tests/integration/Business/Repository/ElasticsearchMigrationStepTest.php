@@ -107,4 +107,20 @@ class ElasticsearchMigrationStepTest extends TestCase
             $this->repository->find(1)
         );
     }
+    
+    /**
+     * @test
+     */
+    public function it_deletes_a_migration()
+    {
+        $this->repository->create(2, 'createIndex', [
+            'index' => 'phpunit'
+        ]);
+    
+        $this->assertInstanceOf(ElasticsearchMigrationStep::class, $this->repository->find(1));
+        
+        $this->repository->delete(1);
+        
+        $this->assertNull($this->repository->find(1));
+    }
 }

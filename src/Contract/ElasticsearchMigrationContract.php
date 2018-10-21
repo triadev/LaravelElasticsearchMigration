@@ -33,6 +33,14 @@ interface ElasticsearchMigrationContract
     ) : bool;
     
     /**
+     * Delete migration step
+     *
+     * @param int $migrationStepId
+     * @return bool
+     */
+    public function deleteMigrationStep(int $migrationStepId) : bool;
+    
+    /**
      * Get migration status
      *
      * @param string $migration
@@ -41,6 +49,7 @@ interface ElasticsearchMigrationContract
      *      'status' => STRING,
      *      'error' => STRING|NULL,
      *      'steps' => [
+     *          'id' => INTEGER,
      *          'type' => STRING,
      *          'status' => INTEGER,
      *          'error' => STRING|NULL,

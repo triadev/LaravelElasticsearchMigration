@@ -78,6 +78,16 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
             ->first();
     }
     
+    /**
+     * @inheritdoc
+     */
+    public function delete(int $migrationStepId)
+    {
+        if ($migrationStep = $this->find($migrationStepId)) {
+            $migrationStep->delete();
+        }
+    }
+    
     private function dispatchStatus(\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep $migration)
     {
         switch ($migration->status) {

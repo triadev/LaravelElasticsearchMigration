@@ -82,6 +82,23 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     }
     
     /**
+     * Delete migration step
+     *
+     * @param int $migrationStepId
+     * @return bool
+     */
+    public function deleteMigrationStep(int $migrationStepId) : bool
+    {
+        try {
+            $this->migrationStepRepository->delete($migrationStepId);
+        } catch (\Throwable $e) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
      * @inheritdoc
      */
     public function getMigrationStatus(string $migration) : array
@@ -97,11 +114,9 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
             
             foreach ($migrationEntity->migrationSteps()->cursor() as $migrationStep) {
                 /** @var ElasticsearchMigrationStep $migrationStep */
-                $migrationStepData = array_except($migrationStep->toArray(), [
-                    'id',
-                    'migration_id'
-                ]);
+                $migrationStepData = array_except($migrationStep->toArray(), ['migration_id']);
                 
+                $migrationStepData['id'] = (int)$migrationStepData['id'];
                 $migrationStepData['status'] = (int)$migrationStepData['status'];
                 $migrationStepData['params'] = json_decode($migrationStepData['params'], true);
                 $migrationStepData['priority'] = (int)$migrationStepData['priority'];

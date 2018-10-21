@@ -69,18 +69,18 @@ class ElasticsearchMigrationTest extends TestCase
     public function it_adds_migration_steps_with_priority()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        
+    
         $this->assertEquals(
             0,
             $this->migrationRepository->find('phpunit')->migrationSteps()->count()
         );
-        
+    
         $this->addMigrationSteps();
-        
+    
         $migrationSteps = $this->migrationRepository->find('phpunit')->migrationSteps()->getResults();
-        
+    
         $this->assertEquals(7, count($migrationSteps));
-        
+    
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_CREATE_INDEX, $migrationSteps[0]->type);
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING, $migrationSteps[1]->type);
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_DELETE_INDEX, $migrationSteps[2]->type);
@@ -88,6 +88,30 @@ class ElasticsearchMigrationTest extends TestCase
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY, $migrationSteps[4]->type);
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_REINDEX, $migrationSteps[5]->type);
         $this->assertEquals(MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY, $migrationSteps[6]->type);
+    }
+    
+    /**
+     * @test
+     */
+    public function it_deletes_a_migration_step()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        
+        $this->addMigrationSteps();
+
+        $this->assertEquals(
+            7,
+            $this->migrationRepository->find('phpunit')->migrationSteps()->count()
+        );
+        
+        $this->migrationService->deleteMigrationStep(1);
+        $this->migrationService->deleteMigrationStep(2);
+        $this->migrationService->deleteMigrationStep(3);
+    
+        $this->assertEquals(
+            4,
+            $this->migrationRepository->find('phpunit')->migrationSteps()->count()
+        );
     }
     
     /**
@@ -144,7 +168,8 @@ class ElasticsearchMigrationTest extends TestCase
         foreach ($result['steps'] as $step) {
             $this->assertEquals(MigrationStatus::MIGRATION_STATUS_WAIT, $step['status']);
             $this->assertEquals(null, $step['error']);
-            
+    
+            $this->assertTrue(is_int($step['id']));
             $this->assertTrue(is_array($step['params']));
             $this->assertTrue(is_int($step['priority']));
             $this->assertTrue(is_bool($step['stop_on_failure']));

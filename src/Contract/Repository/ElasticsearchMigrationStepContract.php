@@ -54,4 +54,13 @@ interface ElasticsearchMigrationStepContract
      * @return null|ElasticsearchMigrationStep
      */
     public function find(int $migrationStepId) : ?ElasticsearchMigrationStep;
+    
+    /**
+     * Delete
+     *
+     * @param int $migrationStepId
+     *
+     * @throws \Throwable
+     */
+    public function delete(int $migrationStepId);
 }
