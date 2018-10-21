@@ -35,7 +35,6 @@ interface ElasticsearchMigrationContract
      * Delete
      *
      * @param string $migration
-     * @return bool
      *
      * @throws \Throwable
      */
