@@ -263,6 +263,70 @@ class ElasticsearchMigrationTest extends TestCase
     /**
      * @test
      */
+    public function it_restarts_migration_also_if_migration_status_is_done()
+    {
+        $this->expectsEvents([
+            MigrationRunning::class,
+            MigrationDone::class,
+            MigrationStepRunning::class,
+            MigrationStepDone::class
+        ]);
+        
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ]
+        ));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
+            [
+                'index' => 'index'
+            ]
+        ));
+        
+        // set status on done
+        $this->migrationRepository->createOrUpdate('phpunit', MigrationStatus::MIGRATION_STATUS_DONE);
+        
+        // check if status is done
+        $result = $this->migrationService->getMigrationStatus('phpunit');
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_DONE, $result['status']);
+        
+        $this->migrationService->restartMigration('phpunit', $this->elasticsearchClients);
+        
+        $result = $this->migrationService->getMigrationStatus('phpunit');
+        $this->assertEquals( MigrationStatus::MIGRATION_STATUS_DONE, $result['status']);
+        
+        foreach ($result['steps'] as $step) {
+            $this->assertEquals(MigrationStatus::MIGRATION_STATUS_DONE, $step['status']);
+            $this->assertEquals(null, $step['error']);
+        }
+    }
+    
+    /**
+     * @test
+     */
     public function the_migration_fails_if_no_alive_elasticsearch_nodes_found_in_cluster()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
@@ -385,7 +449,7 @@ class ElasticsearchMigrationTest extends TestCase
      * @test
      * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyDone
      */
-    public function it_throws_an_exception_if_a_migration_already_done()
+    public function it_throws_an_exception_if_a_migration_already_done_when_start_pipeline()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
         $this->assertTrue($this->migrationService->addMigrationStep(
@@ -422,7 +486,7 @@ class ElasticsearchMigrationTest extends TestCase
      * @test
      * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyRunning
      */
-    public function it_throws_an_exception_if_a_migration_already_running()
+    public function it_throws_an_exception_if_a_migration_already_running_when_start_pipeline()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
         $this->assertTrue($this->migrationService->addMigrationStep(
@@ -458,6 +522,48 @@ class ElasticsearchMigrationTest extends TestCase
         );
         
         $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
+    }
+    
+    /**
+     * @test
+     * @expectedException \Triadev\EsMigration\Exception\MigrationAlreadyRunning
+     */
+    public function it_throws_an_exception_if_a_migration_already_running_when_restart_pipeline()
+    {
+        $this->assertTrue($this->migrationService->createMigration('phpunit'));
+        $this->assertTrue($this->migrationService->addMigrationStep(
+            'phpunit',
+            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
+            [
+                'index' => 'index',
+                'body' => [
+                    'mappings' => [
+                        'phpunit' => [
+                            'dynamic' => 'strict',
+                            'properties' => [
+                                'title' => [
+                                    'type' => 'text'
+                                ],
+                                'count' => [
+                                    'type' => 'integer'
+                                ]
+                            ]
+                        ]
+                    ],
+                    'settings' => [
+                        'refresh_interval' => "30s"
+                    ]
+                ]
+            ]
+        ));
+        
+        $this->migrationRepository->createOrUpdate(
+            'phpunit',
+            MigrationStatus::MIGRATION_STATUS_RUNNING,
+            null
+        );
+        
+        $this->migrationService->restartMigration('phpunit', $this->elasticsearchClients);
     }
     
     private function addMigrationSteps()
