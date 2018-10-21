@@ -15,6 +15,14 @@ interface ElasticsearchMigrationContract
     public function createMigration(string $migration) : bool;
     
     /**
+     * Delete migration
+     *
+     * @param string $migration
+     * @return bool
+     */
+    public function deleteMigration(string $migration) : bool;
+    
+    /**
      * Add migration step
      *
      * @param string $migration
