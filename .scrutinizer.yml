@@ -3,12 +3,21 @@ build:
     coverage:
       services:
         elasticsearch: 6.4.0
+
       environment:
         variables:
           ELASTICSEARCH_PORT: 9200
+
+      cache:
+        directories:
+          - vendor/
+
       tests:
+        stop_on_failure: true
+
         override:
           - command: ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+            stop_on_failure: true
             coverage:
               file: build/logs/clover.xml
               format: clover
@@ -17,6 +26,7 @@ build:
       project_setup:
         override:
           - 'true'
+
       tests:
         override:
           - php-scrutinizer-run --enable-security-analysis
