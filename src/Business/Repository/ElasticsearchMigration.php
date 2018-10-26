@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Business\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Triadev\EsMigration\Business\Events\MigrationDone;
 use Triadev\EsMigration\Business\Events\MigrationError;
 use Triadev\EsMigration\Business\Events\MigrationRunning;
@@ -42,9 +43,13 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
      */
     public function find(string $migration): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigration
     {
-        return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::where('migration', $migration)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        try {
+            return \Triadev\EsMigration\Models\Entity\ElasticsearchMigration::where('migration', $migration)
+                ->orderBy('created_at', 'desc')
+                ->firstOrFail();
+        } catch (ModelNotFoundException $e) {
+            return null;
+        }
     }
     
     /**
