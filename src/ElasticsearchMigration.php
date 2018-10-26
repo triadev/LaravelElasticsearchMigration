@@ -141,11 +141,11 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 /** @var ElasticsearchMigrationStep $migrationStep */
                 $migrationStepData = array_except($migrationStep->toArray(), ['migration_id']);
                 
-                $migrationStepData['id'] = (int)$migrationStepData['id'];
-                $migrationStepData['status'] = (int)$migrationStepData['status'];
+                $migrationStepData['id'] = (int) $migrationStepData['id'];
+                $migrationStepData['status'] = (int) $migrationStepData['status'];
                 $migrationStepData['params'] = json_decode($migrationStepData['params'], true);
-                $migrationStepData['priority'] = (int)$migrationStepData['priority'];
-                $migrationStepData['stop_on_failure'] = (bool)$migrationStepData['stop_on_failure'];
+                $migrationStepData['priority'] = (int) $migrationStepData['priority'];
+                $migrationStepData['stop_on_failure'] = (bool) $migrationStepData['stop_on_failure'];
                 $migrationStepData['created_at'] = new \DateTime($migrationStepData['created_at']);
                 $migrationStepData['updated_at'] = new \DateTime($migrationStepData['updated_at']);
                 
@@ -155,7 +155,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     
         return [
             'migration' => $migration,
-            'status' => (int)$status,
+            'status' => (int) $status,
             'error' => $error,
             'steps' => $migrationSteps
         ];
