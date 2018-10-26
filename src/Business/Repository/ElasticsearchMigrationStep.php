@@ -1,6 +1,7 @@
 <?php
 namespace Triadev\EsMigration\Business\Repository;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Triadev\EsMigration\Business\Events\MigrationStepDone;
 use Triadev\EsMigration\Business\Events\MigrationStepError;
 use Triadev\EsMigration\Business\Events\MigrationStepRunning;
@@ -74,8 +75,12 @@ class ElasticsearchMigrationStep implements ElasticsearchMigrationStepContract
      */
     public function find(int $migrationStepId): ?\Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep
     {
-        return \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep::where('id', $migrationStepId)
-            ->first();
+        try {
+            return \Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep::where('id', $migrationStepId)
+                ->firstOrFail();
+        } catch (ModelNotFoundException $e) {
+            return null;
+        }
     }
     
     /**
