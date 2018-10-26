@@ -1,6 +1,11 @@
 build:
   nodes:
     coverage:
+      services:
+        elasticsearch: 6.4.0
+      environment:
+        variables:
+          ELASTICSEARCH_PORT: 9200
       tests:
         override:
           - command: ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
@@ -17,15 +22,6 @@ build:
           - php-scrutinizer-run --enable-security-analysis
           - command: phpcs-run
             use_website_config: true
-
-  environment:
-    variables:
-      ELASTICSEARCH_PORT: 9200
-    php:
-      version: "7.1"
-
-  services:
-    elasticsearch: 6.4.0
 
 filter:
   excluded_paths:
