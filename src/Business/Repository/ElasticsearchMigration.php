@@ -20,7 +20,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     ): \Triadev\EsMigration\Models\Entity\ElasticsearchMigration {
         $dbMigration = $this->find($migration);
         
-        if (!$dbMigration) {
+        if (!$dbMigration instanceof \Triadev\EsMigration\Models\Entity\ElasticsearchMigration) {
             $dbMigration = new \Triadev\EsMigration\Models\Entity\ElasticsearchMigration();
             $dbMigration->migration = $migration;
         }
