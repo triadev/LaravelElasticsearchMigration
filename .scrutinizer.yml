@@ -37,6 +37,7 @@ filter:
   excluded_paths:
     - 'tests/*'
     - 'src/Business/Events/*'
+    - 'src/Database/Migrations/*'
 
 checks:
   php:
