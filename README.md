@@ -4,6 +4,7 @@
 [![Travis][ico-travis]][link-travis]
 [![Coveralls](https://coveralls.io/repos/github/triadev/LaravelElasticsearchMigration/badge.svg?branch=master)](https://coveralls.io/github/triadev/LaravelElasticsearchMigration?branch=master)
 [![CodeCov](https://codecov.io/gh/triadev/LaravelElasticsearchMigration/branch/master/graph/badge.svg)](https://codecov.io/gh/triadev/LaravelElasticsearchMigration)
+
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/badges/build.png?b=master)](https://scrutinizer-ci.com/g/triadev/LaravelElasticsearchMigration/build-status/master)

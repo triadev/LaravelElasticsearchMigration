@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $migration
  * @property string $status
  * @property string|null $error
+ * @property string $created_at
+ * @property string $updated_at
  */
 class ElasticsearchMigration extends Model
 {
