@@ -2,6 +2,7 @@
 namespace Tests\Integration;
 
 use Elasticsearch\Client;
+use Tests\Helpers\CreateMigrationStep;
 use Tests\TestCase;
 use Triadev\EsMigration\Business\Events\MigrationDone;
 use Triadev\EsMigration\Business\Events\MigrationRunning;
@@ -26,6 +27,9 @@ class ElasticsearchMigrationTest extends TestCase
     /** @var ElasticsearchMigrationStepRepository */
     private $migrationStepRepository;
     
+    /** @var CreateMigrationStep */
+    private $createMigrationStepHelper;
+    
     /**
      * SetUp
      */
@@ -36,6 +40,9 @@ class ElasticsearchMigrationTest extends TestCase
         $this->migrationService = app(ElasticsearchMigrationContract::class);
         $this->migrationRepository = app(ElasticsearchMigrationRepository::class);
         $this->migrationStepRepository = app(ElasticsearchMigrationStepRepository::class);
+        $this->createMigrationStepHelper = new CreateMigrationStep();
+        
+        $this->migrationRepository->delete('phpunit');
     
         /** @var Client $esClient */
         $esClient = $this->elasticsearchClients->get('phpunit');
@@ -253,38 +260,9 @@ class ElasticsearchMigrationTest extends TestCase
         ]);
         
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
-            [
-                'index' => 'index'
-            ]
-        ));
+
+        $this->createMigrationStepHelper->createIndex();
+        $this->createMigrationStepHelper->deleteIndex();
         
         $result = $this->migrationService->getMigrationStatus('phpunit');
         $this->assertEquals('phpunit', $result['migration']);
@@ -316,38 +294,9 @@ class ElasticsearchMigrationTest extends TestCase
         ]);
         
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
-            [
-                'index' => 'index'
-            ]
-        ));
+
+        $this->createMigrationStepHelper->createIndex();
+        $this->createMigrationStepHelper->deleteIndex();
         
         // set status on done
         $this->migrationRepository->createOrUpdate('phpunit', MigrationStatus::MIGRATION_STATUS_DONE);
@@ -373,38 +322,9 @@ class ElasticsearchMigrationTest extends TestCase
     public function the_migration_fails_if_no_alive_elasticsearch_nodes_found_in_cluster()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
-            [
-                'index' => 'index'
-            ]
-        ));
+
+        $this->createMigrationStepHelper->createIndex();
+        $this->createMigrationStepHelper->deleteIndex();
     
         $clients = new ElasticsearchClients();
         $clients->add(
@@ -450,42 +370,9 @@ class ElasticsearchMigrationTest extends TestCase
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
         
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
-            [
-                'index' => 'index'
-            ],
-            1,
-            $stopOnFailure
-        ));
-    
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ],
-            1
-        ));
+        
+        $this->createMigrationStepHelper->updateIndex(1, $stopOnFailure);
+        $this->createMigrationStepHelper->createindex();
     }
     
     /**
@@ -495,31 +382,8 @@ class ElasticsearchMigrationTest extends TestCase
     public function it_throws_an_exception_if_a_migration_already_done_when_start_pipeline()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
+
+        $this->createMigrationStepHelper->createIndex();
         
         $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
         $this->migrationService->startMigration('phpunit', $this->elasticsearchClients);
@@ -532,31 +396,8 @@ class ElasticsearchMigrationTest extends TestCase
     public function it_throws_an_exception_if_a_migration_already_running_when_start_pipeline()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
+        
+        $this->createMigrationStepHelper->createIndex();
         
         $this->migrationRepository->createOrUpdate(
             'phpunit',
@@ -574,31 +415,8 @@ class ElasticsearchMigrationTest extends TestCase
     public function it_throws_an_exception_if_a_migration_already_running_when_restart_pipeline()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                    'mappings' => [
-                        'phpunit' => [
-                            'dynamic' => 'strict',
-                            'properties' => [
-                                'title' => [
-                                    'type' => 'text'
-                                ],
-                                'count' => [
-                                    'type' => 'integer'
-                                ]
-                            ]
-                        ]
-                    ],
-                    'settings' => [
-                        'refresh_interval' => "30s"
-                    ]
-                ]
-            ]
-        ));
+
+        $this->createMigrationStepHelper->createIndex();
         
         $this->migrationRepository->createOrUpdate(
             'phpunit',
@@ -611,95 +429,12 @@ class ElasticsearchMigrationTest extends TestCase
     
     private function addMigrationSteps()
     {
-        // Create index
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_CREATE_INDEX,
-            [
-                'index' => 'index',
-                'body' => [
-                   'mappings' => [
-                       'phpunit' => [
-                           'dynamic' => 'strict',
-                           'properties' => [
-                               'title' => [
-                                   'type' => 'text'
-                               ],
-                               'count' => [
-                                   'type' => 'integer'
-                               ]
-                           ]
-                       ]
-                   ],
-                   'settings' => [
-                       'refresh_interval' => "30s"
-                   ]
-                ]
-            ],
-            1
-        ));
-    
-        // Update index
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_UPDATE_INDEX_MAPPING,
-            [
-                'index' => 'index'
-            ],
-            2
-        ));
-    
-        // Delete index
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_DELETE_INDEX,
-            [
-                'index' => 'index'
-            ],
-            2
-        ));
-    
-        // Alias
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_PUT_ALIAS,
-            [
-                'index' => 'index'
-            ],
-            2
-        ));
-    
-        // Delete by query
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_DELETE_BY_QUERY,
-            [
-                'index' => 'index',
-                'query' => []
-            ],
-            2
-        ));
-    
-        // Update by query
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_UPDATE_BY_QUERY,
-            [
-                'index' => 'index',
-                'query' => []
-            ],
-            3
-        ));
-    
-        // Reindex
-        $this->assertTrue($this->migrationService->addMigrationStep(
-            'phpunit',
-            MigrationTypes::MIGRATION_TYPE_REINDEX,
-            [
-                'index' => 'index',
-                'destIndex' => 'phpunit'
-            ],
-            2
-        ));
+        $this->createMigrationStepHelper->createIndex(1);
+        $this->createMigrationStepHelper->updateIndex(2);
+        $this->createMigrationStepHelper->deleteIndex(2);
+        $this->createMigrationStepHelper->alias(2);
+        $this->createMigrationStepHelper->deleteByQuery(2);
+        $this->createMigrationStepHelper->updateByQuery(3);
+        $this->createMigrationStepHelper->reindex(2);
     }
 }
