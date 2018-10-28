@@ -66,6 +66,38 @@ class ElasticsearchMigrationTest extends TestCase
     /**
      * @test
      */
+    public function it_gets_all_migrations()
+    {
+        $this->assertTrue(
+            $this->migrationService->createMigration(
+                'phpunit1'
+            )
+        );
+    
+        $this->assertTrue(
+            $this->migrationService->createMigration(
+                'phpunit2'
+            )
+        );
+        
+        // Without status constraint
+        $migrations = $this->migrationService->getAllMigrations();
+        $this->assertEquals('phpunit1', $migrations[0]->getMigration());
+        $this->assertEquals('phpunit2', $migrations[1]->getMigration());
+        
+        // Only status: wait
+        $migrations = $this->migrationService->getAllMigrations([MigrationStatus::MIGRATION_STATUS_WAIT]);
+        $this->assertEquals('phpunit1', $migrations[0]->getMigration());
+        $this->assertEquals('phpunit2', $migrations[1]->getMigration());
+    
+        // Only status: done
+        $migrations = $this->migrationService->getAllMigrations([MigrationStatus::MIGRATION_STATUS_DONE]);
+        $this->assertEmpty($migrations);
+    }
+    
+    /**
+     * @test
+     */
     public function it_adds_migration_steps_with_priority()
     {
         $this->assertTrue($this->migrationService->createMigration('phpunit'));

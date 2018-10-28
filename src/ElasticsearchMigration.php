@@ -1,6 +1,7 @@
 <?php
 namespace Triadev\EsMigration;
 
+use Illuminate\Support\Carbon;
 use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Business\Service\MigrationSteps;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
@@ -13,6 +14,7 @@ use Triadev\EsMigration\Models\Entity\ElasticsearchMigration as ElasticsearchMig
 use Triadev\EsMigration\Models\Entity\ElasticsearchMigrationStep;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract as EsMigrationRepositoryInterface;
 use Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationStepContract as EsMigrationStepRepositoryInterface;
+use Triadev\EsMigration\Models\Migration;
 use Triadev\EsMigration\Models\MigrationStep;
 
 class ElasticsearchMigration implements ElasticsearchMigrationContract
@@ -269,5 +271,31 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
                 throw $e;
             }
         }
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function getAllMigrations(?array $onlyWithStatus = null): array
+    {
+        $migrations = [];
+        
+        $this->migrationRepository->all()->each(function ($migrationEntity) use (&$migrations, $onlyWithStatus) {
+            /** @var \Triadev\EsMigration\Models\Entity\ElasticsearchMigration $migrationEntity */
+            if (is_array($onlyWithStatus) && !in_array($migrationEntity->status, $onlyWithStatus)) {
+                return;
+            }
+            
+            $migrations[] = new Migration(
+                $migrationEntity->id,
+                $migrationEntity->migration,
+                $migrationEntity->status,
+                $migrationEntity->error,
+                Carbon::parse($migrationEntity->created_at),
+                Carbon::parse($migrationEntity->updated_at)
+            );
+        });
+        
+        return $migrations;
     }
 }

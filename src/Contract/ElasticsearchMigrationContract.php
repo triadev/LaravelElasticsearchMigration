@@ -4,6 +4,7 @@ namespace Triadev\EsMigration\Contract;
 use Triadev\EsMigration\Business\Repository\ElasticsearchClients;
 use Triadev\EsMigration\Exception\MigrationAlreadyDone;
 use Triadev\EsMigration\Exception\MigrationStepNotFound;
+use Triadev\EsMigration\Models\Migration;
 
 interface ElasticsearchMigrationContract
 {
@@ -104,4 +105,12 @@ interface ElasticsearchMigrationContract
      * @throws \Throwable
      */
     public function restartMigration(string $migration, ElasticsearchClients $elasticsearchClients);
+    
+    /**
+     * Get all migrations
+     *
+     * @param array|null $onlyWithStatus
+     * @return Migration[]
+     */
+    public function getAllMigrations(?array $onlyWithStatus = null) : array;
 }
