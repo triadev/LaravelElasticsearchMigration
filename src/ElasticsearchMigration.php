@@ -280,7 +280,7 @@ class ElasticsearchMigration implements ElasticsearchMigrationContract
     {
         $migrations = [];
         
-        $this->migrationRepository->all()->each(function($migrationEntity) use (&$migrations, $onlyWithStatus) {
+        $this->migrationRepository->all()->each(function ($migrationEntity) use (&$migrations, $onlyWithStatus) {
             /** @var \Triadev\EsMigration\Models\Entity\ElasticsearchMigration $migrationEntity */
             if (is_array($onlyWithStatus) && !in_array($migrationEntity->status, $onlyWithStatus)) {
                 return;
