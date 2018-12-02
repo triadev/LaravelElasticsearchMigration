@@ -44,21 +44,54 @@ Elasticsearch migration for laravel.
 
 ### Application
 The package is registered through the package discovery of laravel and Composer.
->https://laravel.com/docs/5.6/packages
+>https://laravel.com/docs/5.7/packages
 
-### Events
+Once installed you can now publish your config file and set your correct configuration for using the package.
+```php
+php artisan vendor:publish --provider="Triadev\EsMigration\Provider\ElasticsearchMigrationServiceProvider" --tag="config"
+```
+
+This will create a file ```config/triadev-elasticsearch-migration.php```.
+
+### Configuration
+| Key        | Env | Value           | Description  | Example | Default |
+|:-------------:|:-------------:|:-------------:|:-----:|:-----:|:-----:|
+| filePath | --- | ARRAY | path for file migrations | [KEY => STRING, ...] | null |
+
+## Migration via file
+The migration file path must be defined in package config.
+
+### Configuration
+| Key        | Value           | Description  | Default |
+|:-------------:|:-------------:|:-------------:|:-----:|
+| type | STRING | migration type | --- |
+| params | ARRAY | configuration | --- |
+| priority | INTEGER | order of migration steps | 1 |
+| stopOnFailure | BOOL | stop on failure at migration | true |
+
+### CLI-Command
+The cli-command imports the migration files to database.
+>php artisan triadev:es-migration:import-file-migrations {migration} {filePath}
+
+#### migration
+Name of the migration directory.
+
+#### filePath
+The already defined file path key in package config.
+
+## Events
 [Documentation: Laravel Events](https://laravel.com/docs/5.7/events)
 
 Namespace: Triadev\EsMigration\Business\Events
 
-#### Migration
+### Migration
 | Event        | Status  |
 |:-------------:|:-----:|
 | MigrationRunning | Migration is running |
 | MigrationError | Migration is failed |
 | MigrationDone | Migration is done |
 
-#### Migration - Step
+### Migration - Step
 | Event        | Status  |
 |:-------------:|:-----:|
 | MigrationStepRunning | Migration step is running |
