@@ -97,8 +97,8 @@ class ImportFileMigrations extends Command
             foreach ($this->getValidMigrationSteps($migrationSteps) as $validMigrationStep) {
                 $this->elasticsearchMigrationService->addMigrationStep(
                     $migration,
-                    array_get($validMigrationStep, 'type'),
-                    array_get($validMigrationStep, 'params'),
+                    /** @scrutinizer ignore-type */ array_get($validMigrationStep, 'type'),
+                    /** @scrutinizer ignore-type */ array_get($validMigrationStep, 'params'),
                     array_get($validMigrationStep, 'priority', 1),
                     array_get($validMigrationStep, 'stopOnFailure', true)
                 );
@@ -121,19 +121,19 @@ class ImportFileMigrations extends Command
     
         foreach ($migrationSteps as $migrationStep) {
             $step = require $migrationStep;
-        
-            $validator = Validator::make($step, [
+            
+            if (Validator::make($step, [
                 'type' => 'required|string',
                 'params' => 'required|array',
                 'priority' => 'integer',
                 'stopOnFailure' => 'boolean'
-            ]);
-        
-            if ($validator->fails()) {
+            ])->fails()) {
                 throw new \Exception("The migration step is invalid.");
             }
         
-            if (!$migrationTypes->isMigrationTypeValid(array_get($step, 'type'))) {
+            if (!$migrationTypes->isMigrationTypeValid(
+                /** @scrutinizer ignore-type */ array_get($step, 'type')
+            )) {
                 throw new \Exception("The migration step type is invalid.");
             }
         
