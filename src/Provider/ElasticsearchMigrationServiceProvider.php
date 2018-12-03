@@ -2,6 +2,7 @@
 namespace Triadev\EsMigration\Provider;
 
 use Illuminate\Support\ServiceProvider;
+use Triadev\EsMigration\Console\Commands\ImportFileMigrations;
 use Triadev\EsMigration\Contract\ElasticsearchMigrationContract;
 use Triadev\EsMigration\ElasticsearchMigration;
 
@@ -14,7 +15,19 @@ class ElasticsearchMigrationServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $source = realpath(__DIR__ . '/../Config/config.php');
+    
+        $this->publishes([
+            __DIR__ . '/../Config/config.php' => config_path('triadev-elasticsearch-migration.php'),
+        ], 'config');
+    
+        $this->mergeConfigFrom($source, 'triadev-elasticsearch-migration');
+        
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        
+        $this->commands([
+            ImportFileMigrations::class
+        ]);
     
         $this->app->bind(
             \Triadev\EsMigration\Contract\Repository\ElasticsearchMigrationContract::class,
